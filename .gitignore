@@ -1,0 +1,14 @@
+.idea/
+
+*.class
+*.log
+
+# sbt specific
+.cache
+.lib/
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
