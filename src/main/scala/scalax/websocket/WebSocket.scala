@@ -1,7 +1,7 @@
 package scalax.websocket
 
 import io.netty.buffer.ByteBuf
-import io.netty.channel.{ChannelFuture, Channel}
+import io.netty.channel.{Channel, ChannelFuture}
 import io.netty.handler.codec.http.websocketx._
 
 class WebSocket(ch: Channel) {

@@ -1,10 +1,9 @@
 package scalax.websocket
 
-import java.net.{URL, URI}
+import java.net.URL
 
-import io.netty.handler.codec.http.HttpHeaders.Names
-import io.netty.handler.codec.http.websocketx.{WebSocketClientHandshaker13, WebSocketHandshakeException, WebSocketVersion}
-import io.netty.handler.codec.http.{FullHttpRequest, FullHttpResponse, HttpHeaders, HttpResponseStatus}
+import io.netty.handler.codec.http.websocketx.{WebSocketClientHandshaker13, WebSocketVersion}
+import io.netty.handler.codec.http.{FullHttpRequest, HttpHeaders}
 
 class WebSocketClientHandshaker(url: URL, customHeaders: HttpHeaders) extends WebSocketClientHandshaker13(
   url.toURI, WebSocketVersion.V13, null, false, customHeaders, 65536) {

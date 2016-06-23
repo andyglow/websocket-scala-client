@@ -9,8 +9,8 @@ import io.netty.util.CharsetUtil
 import scala.concurrent.stm._
 
 private[websocket] class WebSocketClientHandler(
-  handshaker: WebSocketClientHandshaker,
-  listener: WebSocketMessageListener) extends SimpleChannelInboundHandler[ByteBufHolder] {
+    handshaker: WebSocketClientHandshaker,
+    listener: WebSocketMessageListener) extends SimpleChannelInboundHandler[ByteBufHolder] {
 
   private val handshakerFuture = Ref.make[ChannelPromise]()
   private[websocket] def waitForHandshake() = atomic { implicit txn => handshakerFuture().sync() }

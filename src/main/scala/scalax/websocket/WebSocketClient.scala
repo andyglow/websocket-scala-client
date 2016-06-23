@@ -13,11 +13,11 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 
 class WebSocketClient private(
-  url: URL,
-  sslCtx: Option[SslContext],
-  customHeaders: HttpHeaders,
-  listener: WebSocketMessageListener,
-  logLevel: Option[LogLevel]) {
+    url: URL,
+    sslCtx: Option[SslContext],
+    customHeaders: HttpHeaders,
+    listener: WebSocketMessageListener,
+    logLevel: Option[LogLevel]) {
 
   private val group = new NioEventLoopGroup()
 
@@ -32,8 +32,8 @@ class WebSocketClient private(
       .handler(new ChannelInitializer[SocketChannel]() {
         override def initChannel(ch: SocketChannel) {
           val p = ch.pipeline()
-          for { sslCtx <- sslCtx } p.addLast(sslCtx.newHandler(ch.alloc(), url.getHost, url.getPort))
-          logLevel foreach(level => p.addLast(new LoggingHandler(level)))
+          for (sslCtx <- sslCtx) p.addLast(sslCtx.newHandler(ch.alloc(), url.getHost, url.getPort))
+          logLevel foreach (level => p.addLast(new LoggingHandler(level)))
           p.addLast(
             new HttpClientCodec(),
             new HttpObjectAggregator(8192),
