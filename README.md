@@ -5,4 +5,10 @@
 WebSocket client based on Netty
 
 ## Usage
+
+### build.sbt
+```
+libraryDependencies += "com.github.andyglow" %% "websocket-scala-client" % ${LATEST_VERSION} % Compile
+```
+
 _TODO_
