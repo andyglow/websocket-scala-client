@@ -13,6 +13,7 @@ libraryDependencies += "com.github.andyglow" %% "websocket-scala-client" % ${LAT
 
 ### Code
 
+#### Simple example
 ```scala
   // 1. prepare ws-client
   // 2. define message handler
@@ -28,5 +29,44 @@ libraryDependencies += "com.github.andyglow" %% "websocket-scala-client" % ${LAT
   ws ! "hello"
   ws ! "world"
 ```
+
+#### A bit more advantaged example
+```scala
+  // define some mutex to be able to shutdown app when message passing ends 
+  val semaphore = new Semaphore(0)
+  
+  // define our protocol handler
+  val protocolHandler = new WebsocketHandler[String]() {
+    def receive = {
+      case str if str startsWith "repeat " =>
+        sender() ! "repeating " + str.substring(7)
+        logger.info(s"<<| $str")
+
+      case str if str endsWith "close" =>
+        logger.info(s"<<! $str")
+        sender().close()
+        semaphore.release()
+
+      case str =>
+        logger.info(s"<<| $str")
+    }
+  }
+
+  // create websocket client and open connection
+  val cli = WebsocketClient(Uri("ws://echo.websocket.org"), protocolHandler)
+  val ws = cli.open()
+
+  // send some messages
+  ws ! "hello"
+  ws ! "world"
+  ws ! "repeat and close"
+  
+  // wait for echoed 'repeating close'
+  semaphore.acquire(1)
+  
+  // shutdown whole the netty stack
+  cli.shutdown()
+```
+Defining websocket handler this way we are able to communicate back straight from handler. Use `sender()` for that. 
 
 For more examples please see [Examples Section](https://github.com/andyglow/websocket-scala-client/tree/develop/src/example/scala)
