@@ -8,10 +8,14 @@ object WebsocketScalaClientBuild extends Build {
 
   val projectId = "websocket-scala-client"
 
-  lazy val project = Project(
-    projectId,
-    file("."),
-    settings = BuildSettings.settings)
+  lazy val project = (Project(projectId, file("."))
+    configs Examples
+    settings inConfig(Examples)(Defaults.compileBase ++ Defaults.compileSettings ++ {
+      def mainRunTask = run <<= Defaults.runTask(fullClasspath in Examples, mainClass in run, runner in run)
+      def mainRunMainTask = runMain <<= Defaults.runMainTask(fullClasspath in Examples, runner in run)
+      Seq(mainRunTask, mainRunMainTask)
+    })
+    settings BuildSettings.settings)
 
   object Bintray {
 
@@ -43,15 +47,18 @@ object WebsocketScalaClientBuild extends Build {
 
   object Dependencies {
     val nettyVersion = "4.0.33.Final"
-    val nettyAll  = "io.netty"      % "netty-all" 			  % nettyVersion  % Compile
-    val nettyHttp = "io.netty"      % "netty-codec-http" 	% nettyVersion  % Compile
-    val scalaStm  = "org.scala-stm" %% "scala-stm"        % "0.7"         % Compile
-    val all = Seq(nettyAll, nettyHttp, scalaStm)
+    val slf4jVersion = "1.7.12"
+    val nettyAll    = "io.netty"      % "netty-all" 			  % nettyVersion  % Compile
+    val nettyHttp   = "io.netty"      % "netty-codec-http" 	% nettyVersion  % Compile
+    val slf4jApi    = "org.slf4j"     % "slf4j-api"         % slf4jVersion  % Compile
+    val slf4jSimple = "org.slf4j"     % "slf4j-simple"      % slf4jVersion  % Examples
+    val scalaStm    = "org.scala-stm" %% "scala-stm"        % "0.7"         % Compile
+    val all = Seq(nettyAll, nettyHttp, scalaStm, slf4jApi, slf4jSimple)
   }
 
   object BuildSettings {
 
-    val ver = "0.1.0"
+    val ver = "0.1.2"
 
     lazy val settings = Defaults.coreDefaultSettings ++ Seq(
       version := ver,
@@ -68,5 +75,7 @@ object WebsocketScalaClientBuild extends Build {
 
     ) ++ Bintray.settings
   }
+
+  lazy val Examples = config("example") extend Compile
 
 }
