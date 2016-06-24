@@ -70,3 +70,12 @@ libraryDependencies += "com.github.andyglow" %% "websocket-scala-client" % ${LAT
 Defining websocket handler this way we are able to communicate back straight from handler. Use `sender()` for that. 
 
 For more examples please see [Examples Section](https://github.com/andyglow/websocket-scala-client/tree/develop/src/example/scala)
+
+To run examples one can use `sbt`
+```
+sbt> example:run
+```
+or
+```
+sbt> example:runMain [BinaryEchoWebSocketOrg|SimplifiedTextEchoWebSocketOrg|TextEchoWebSocketOrg]
+```
