@@ -13,6 +13,11 @@ libraryDependencies += "com.github.andyglow" %% "websocket-scala-client" % ${LAT
 
 ### Code
 
+#### Import
+```scala
+import com.github.andyglow.websocket._
+```
+
 #### Simple example
 ```scala
   // 1. prepare ws-client
