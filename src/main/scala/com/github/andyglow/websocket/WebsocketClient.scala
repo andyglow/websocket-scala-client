@@ -66,12 +66,12 @@ object WebsocketClient {
     subprotocol: Option[String] = None,
     maybeSslCtx: Option[SslContext] = None): WebsocketClient[T] = {
 
-    val sslCtx = maybeSslCtx.orElse {
-      if (uri.secure) Some {
+    val sslCtx = if (uri.secure) maybeSslCtx.orElse {
+      Some {
         SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build()
-      } else
-        None
-    }
+      }
+    } else
+      None
 
     val customHeaders =
       headers.foldLeft(new DefaultHttpHeaders().asInstanceOf[HttpHeaders]) {
