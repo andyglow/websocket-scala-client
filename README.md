@@ -36,7 +36,7 @@ import com.github.andyglow.websocket._
   ws ! "world"
 ```
 
-#### A bit more advantaged example
+#### A bit more advanced example
 ```scala
   // define some mutex to be able to shutdown app when message passing ends 
   val semaphore = new Semaphore(0)
