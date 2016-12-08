@@ -3,13 +3,12 @@ import com.github.andyglow.websocket.{WebsocketHandler, WebsocketClient}
 import io.netty.buffer.{Unpooled, ByteBuf}
 import com.github.andyglow.websocket._
 
-object BinaryEchoWebSocketOrg extends WaitForStop {
+object BinaryEchoWebSocketOrg extends WaitForStop[ByteBuf] {
 
   val protocolHandler = new WebsocketHandler[ByteBuf]() {
     def receive = {
       case bin if bin.toString(Charset.defaultCharset()) == "close" =>
         logger.info(s"<<! ${bin.toString(Charset.defaultCharset())}")
-        sender().close()
         done()
 
       case bin =>

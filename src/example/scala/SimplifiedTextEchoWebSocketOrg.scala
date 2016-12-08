@@ -1,6 +1,6 @@
 import com.github.andyglow.websocket._
 
-object SimplifiedTextEchoWebSocketOrg extends WaitForStop {
+object SimplifiedTextEchoWebSocketOrg extends WaitForStop[String] {
 
   // 1. prepare ws-client
   // 2. define message handler

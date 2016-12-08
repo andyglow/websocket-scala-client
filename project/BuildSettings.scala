@@ -4,7 +4,7 @@ import sbt.{Defaults, Opts, _}
 object BuildSettings {
 
   val projectId = "websocket-scala-client"
-  val ver       = "0.2.0"
+  val ver       = "0.3.0"
 
   lazy val coreSettings = Defaults.coreDefaultSettings ++ Seq(
     version := ver,

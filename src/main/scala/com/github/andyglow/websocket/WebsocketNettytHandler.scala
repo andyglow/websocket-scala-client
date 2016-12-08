@@ -20,7 +20,7 @@ private[websocket] class WebsocketNettytHandler[T : MessageFormat](
 
   private val msgHandler: PartialFunction[ByteBufHolder, Unit] = {
     implicitly[MessageFormat[T]] match {
-      case x if x == StringFormat => {
+      case x if x == MessageFormat.String => {
         case msg: TextWebSocketFrame =>
           try {
             handler.asInstanceOf[WebsocketHandler[String]].receive(msg.text())
@@ -28,7 +28,7 @@ private[websocket] class WebsocketNettytHandler[T : MessageFormat](
             case ex: Throwable => logger.error("Error matching frame", ex)
           }
       }
-      case x if x == ByteBufFormat => {
+      case x if x == MessageFormat.ByteBuf => {
         case msg: BinaryWebSocketFrame =>
           try {
             handler.asInstanceOf[WebsocketHandler[ByteBuf]].receive(msg.content())
@@ -47,6 +47,7 @@ private[websocket] class WebsocketNettytHandler[T : MessageFormat](
   override def handlerAdded(ctx: ChannelHandlerContext): Unit = {
     atomic { implicit txn => handshakerFuture() = ctx.newPromise() }
   }
+
   override def channelActive(ctx: ChannelHandlerContext): Unit = {
     handshaker.handshake(ctx.channel())
   }
@@ -68,7 +69,7 @@ private[websocket] class WebsocketNettytHandler[T : MessageFormat](
             }
           } else {
             val content = msg.content().toString(CharsetUtil.UTF_8)
-            val status = msg.getStatus
+            val status = msg.status
             val errMsg = s"Unexpected FullHttpResponse (status=$status, content=$content)"
             throw new IllegalStateException(errMsg)
           }

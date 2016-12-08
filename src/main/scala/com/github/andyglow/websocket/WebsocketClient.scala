@@ -10,9 +10,7 @@ import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 
-trait WebsocketClientControl {
-  def shutdown(): Unit
-}
+import scala.concurrent.{ExecutionContext, Future}
 
 class WebsocketClient[T : MessageFormat] private(
   uri: Uri,
@@ -20,7 +18,7 @@ class WebsocketClient[T : MessageFormat] private(
   sslCtx: Option[SslContext],
   customHeaders: HttpHeaders,
   handler: WebsocketHandler[T],
-  logLevel: Option[LogLevel]) extends WebsocketClientControl {
+  logLevel: Option[LogLevel]) {
 
   private val group = new NioEventLoopGroup()
 
@@ -50,7 +48,14 @@ class WebsocketClient[T : MessageFormat] private(
     clientHandler.waitForHandshake()
   }
 
-  def shutdown() = group.shutdownGracefully()
+  def shutdownSync(): Unit = {
+    group.shutdownGracefully().syncUninterruptibly()
+  }
+
+  def shutdownAsync(implicit ex: ExecutionContext): Future[Unit] = {
+    val f = NettyFuture(group.shutdownGracefully())
+    f map {_ => ()}
+  }
 
 }
 

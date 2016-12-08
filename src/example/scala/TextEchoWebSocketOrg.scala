@@ -1,6 +1,6 @@
 import com.github.andyglow.websocket._
 
-object TextEchoWebSocketOrg extends WaitForStop {
+object TextEchoWebSocketOrg extends WaitForStop[String] {
 
   val protocolHandler = new WebsocketHandler[String]() {
     def receive = {
@@ -10,7 +10,6 @@ object TextEchoWebSocketOrg extends WaitForStop {
 
       case str if str endsWith "close" =>
         logger.info(s"<<! $str")
-        sender().close()
         done()
 
       case str =>
