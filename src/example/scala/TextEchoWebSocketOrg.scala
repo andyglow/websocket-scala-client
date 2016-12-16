@@ -17,7 +17,7 @@ object TextEchoWebSocketOrg extends WaitForStop[String] {
     }
   }
 
-  val control = WebsocketClient(Uri("ws://echo.websocket.org"), protocolHandler)
+  val control = WebsocketClient(stringUri, protocolHandler)
   val ws = control.open()
 
   ws ! "hello"

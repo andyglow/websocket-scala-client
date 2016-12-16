@@ -15,7 +15,7 @@ object BinaryEchoWebSocketOrg extends WaitForStop[ByteBuf] {
         logger.info(s"<<| ${bin.toString(Charset.defaultCharset())}")
     }
   }
-  val control = WebsocketClient(Uri("ws://echo.websocket.org/?encoding=binary"), protocolHandler)
+  val control = WebsocketClient(binaryUri, protocolHandler)
   val ws = control.open()
 
   ws ! Unpooled.wrappedBuffer("hello".getBytes)

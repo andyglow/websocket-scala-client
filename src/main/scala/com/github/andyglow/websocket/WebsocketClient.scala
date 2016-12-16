@@ -62,6 +62,7 @@ class WebsocketClient[T : MessageFormat] private(
 object WebsocketClient {
 
   def apply[T : MessageFormat](uri: String)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(Uri(uri), WebsocketHandler(receive))
+  def apply[T : MessageFormat](uri: Uri)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(uri, WebsocketHandler(receive))
 
   def apply[T : MessageFormat](
     uri: Uri,

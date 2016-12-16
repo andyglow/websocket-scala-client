@@ -4,7 +4,7 @@ object SimplifiedTextEchoWebSocketOrg extends WaitForStop[String] {
 
   // 1. prepare ws-client
   // 2. define message handler
-  val control = WebsocketClient[String]("ws://echo.websocket.org") {
+  val control = WebsocketClient[String](stringUri) {
     case "stop" =>
       logger.info(s"<<! stop")
       done()

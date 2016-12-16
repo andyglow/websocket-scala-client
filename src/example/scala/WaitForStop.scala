@@ -1,6 +1,6 @@
 import java.util.concurrent.Semaphore
 
-import com.github.andyglow.websocket.{Websocket, WebsocketClient}
+import com.github.andyglow.websocket.{Uri, Websocket, WebsocketClient}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
@@ -10,6 +10,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
 trait WaitForStop[T] extends DelayedInit {
+
+  val host = "echo.websocket.org"
+  val binaryUri = Uri(s"ws://$host/?encoding=binary")
+  val stringUri = Uri(s"ws://$host")
 
   val logger = LoggerFactory.getLogger("echo-websocket-example")
 
