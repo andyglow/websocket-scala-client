@@ -6,6 +6,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.http._
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
@@ -38,6 +39,7 @@ class WebsocketClient[T : MessageFormat] private(
           p.addLast(
             new HttpClientCodec(),
             new HttpObjectAggregator(8192),
+            new WebSocketFrameAggregator(Integer.MAX_VALUE),
             clientHandler)
         }
       })
