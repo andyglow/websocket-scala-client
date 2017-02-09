@@ -19,12 +19,13 @@ class WebsocketClient[T : MessageFormat] private(
   sslCtx: Option[SslContext],
   customHeaders: HttpHeaders,
   handler: WebsocketHandler[T],
-  logLevel: Option[LogLevel]) {
+  logLevel: Option[LogLevel],
+  maxFramePayloadLength: Int) {
 
   private val group = new NioEventLoopGroup()
 
   private val clientHandler = new WebsocketNettytHandler(
-    new WebsocketNettyHandshaker(uri, customHeaders, subprotocol),
+    new WebsocketNettyHandshaker(uri, customHeaders, subprotocol, maxFramePayloadLength),
     handler)
 
   private val bootstrap = {
@@ -72,7 +73,8 @@ object WebsocketClient {
     headers: Map[String, String] = Map.empty,
     logLevel: Option[LogLevel] = None,
     subprotocol: Option[String] = None,
-    maybeSslCtx: Option[SslContext] = None): WebsocketClient[T] = {
+    maybeSslCtx: Option[SslContext] = None,
+    maxFramePayloadLength: Int = 65536): WebsocketClient[T] = {
 
     val sslCtx = if (uri.secure) maybeSslCtx.orElse {
       Some {
@@ -86,6 +88,6 @@ object WebsocketClient {
         case (headers, (k, v)) => headers.add(k, v)
       }
 
-    new WebsocketClient(uri, subprotocol, sslCtx, customHeaders, handler, logLevel)
+    new WebsocketClient(uri, subprotocol, sslCtx, customHeaders, handler, logLevel, maxFramePayloadLength)
   }
 }
