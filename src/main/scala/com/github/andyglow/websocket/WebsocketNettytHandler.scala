@@ -82,7 +82,7 @@ private[websocket] class WebsocketNettytHandler[T : MessageFormat](
     ctx.close()
     atomic { implicit txn =>
       val f = handshakerFuture()
-      if (!f.isDone) f.setFailure(cause)
+      if (!f.isDone) f.setFailure(cause) else handler.onFailure(cause)
     }
   }
 
