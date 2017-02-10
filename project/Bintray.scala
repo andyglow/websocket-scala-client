@@ -6,10 +6,7 @@ import BuildSettings._
 object Bintray {
 
   lazy val settings = Seq(
-    publishMavenStyle := true,
     publishArtifact in Test := false,
-    pomIncludeRepository := { _ => false },
-    bintrayReleaseOnPublish in ThisBuild := false,
     licenses += ("GPL-3.0", url("https://www.gnu.org/licenses/gpl-3.0.html")),
     bintrayPackageLabels := Seq("scala", "tools", "websocket", "client"),
     bintrayRepository := "scala-tools",
