@@ -6,6 +6,7 @@ trait WebsocketHandler[T] {
   @volatile private[websocket] var _sender: Websocket = WebsocketHandler.NoSocket
   def sender(): Websocket = _sender
   def receive: PartialFunction[T, Unit]
+  def onFailure(cause: Throwable): Unit = {}
 }
 
 object WebsocketHandler {
