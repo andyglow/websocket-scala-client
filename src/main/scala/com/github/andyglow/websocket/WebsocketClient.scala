@@ -1,5 +1,7 @@
 package com.github.andyglow.websocket
 
+import java.util.concurrent.TimeUnit
+
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
@@ -11,6 +13,7 @@ import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 
 class WebsocketClient[T : MessageFormat] private(
@@ -20,7 +23,9 @@ class WebsocketClient[T : MessageFormat] private(
   customHeaders: HttpHeaders,
   handler: WebsocketHandler[T],
   logLevel: Option[LogLevel],
-  maxFramePayloadLength: Int) {
+  maxFramePayloadLength: Int,
+  shutdownQuietPeriod: FiniteDuration,
+  shutdownTimeout: FiniteDuration) {
 
   private val group = new NioEventLoopGroup()
 
@@ -46,17 +51,18 @@ class WebsocketClient[T : MessageFormat] private(
       })
   }
 
+  private def shutdown() =
+    group.shutdownGracefully(shutdownQuietPeriod.toMillis, shutdownTimeout.toMillis, TimeUnit.MILLISECONDS)
+
   def open(): Websocket = {
     bootstrap.connect(uri.host, uri.port).sync()
     clientHandler.waitForHandshake()
   }
 
-  def shutdownSync(): Unit = {
-    group.shutdownGracefully().syncUninterruptibly()
-  }
+  def shutdownSync(): Unit = shutdown().syncUninterruptibly()
 
   def shutdownAsync(implicit ex: ExecutionContext): Future[Unit] = {
-    val f = NettyFuture(group.shutdownGracefully())
+    val f = NettyFuture(shutdown())
     f map {_ => ()}
   }
 
@@ -74,7 +80,11 @@ object WebsocketClient {
     logLevel: Option[LogLevel] = None,
     subprotocol: Option[String] = None,
     maybeSslCtx: Option[SslContext] = None,
-    maxFramePayloadLength: Int = 65536): WebsocketClient[T] = {
+    maxFramePayloadLength: Int = 65536,
+    shutdownQuietPeriod: FiniteDuration = FiniteDuration(2, TimeUnit.SECONDS),
+    shutdownTimeout: FiniteDuration = FiniteDuration(15, TimeUnit.SECONDS)): WebsocketClient[T] = {
+
+    require(shutdownTimeout >= shutdownQuietPeriod, "shutdownTimeout should be >= shutdownQuietPeriod")
 
     val sslCtx = if (uri.secure) maybeSslCtx.orElse {
       Some {
@@ -88,6 +98,16 @@ object WebsocketClient {
         case (headers, (k, v)) => headers.add(k, v)
       }
 
-    new WebsocketClient(uri, subprotocol, sslCtx, customHeaders, handler, logLevel, maxFramePayloadLength)
+    new WebsocketClient(
+      uri,
+      subprotocol,
+      sslCtx,
+      customHeaders,
+      handler,
+      logLevel,
+      maxFramePayloadLength,
+      shutdownQuietPeriod,
+      shutdownTimeout
+    )
   }
 }
