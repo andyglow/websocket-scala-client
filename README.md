@@ -50,7 +50,7 @@ import com.github.andyglow.websocket._
 
       case str if str endsWith "close" =>
         logger.info(s"<<! $str")
-        sender().close()
+        sender().close
         semaphore.release()
 
       case str =>
@@ -71,7 +71,7 @@ import com.github.andyglow.websocket._
   semaphore.acquire(1)
   
   // shutdown whole the netty stack
-  cli.shutdown()
+  cli.shutdownSync()
 ```
 Defining websocket handler this way we are able to communicate back straight from handler. Use `sender()` for that. 
 
