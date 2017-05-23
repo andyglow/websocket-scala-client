@@ -23,5 +23,4 @@ private[websocket] class WebsocketImpl(ch: Channel) extends Websocket {
     val f = NettyFuture(ch.closeFuture())
     f map {_ => ()}
   }
-
 }

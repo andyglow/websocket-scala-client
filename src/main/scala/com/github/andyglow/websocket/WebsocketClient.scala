@@ -7,13 +7,12 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
-import io.netty.handler.codec.http._
-import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator
+import io.netty.handler.codec.http.{websocketx, _}
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 class WebsocketClient[T : MessageFormat] private(
@@ -30,29 +29,37 @@ class WebsocketClient[T : MessageFormat] private(
   private val group = new NioEventLoopGroup()
 
   private val clientHandler = new WebsocketNettytHandler(
-    new WebsocketNettyHandshaker(uri, customHeaders, subprotocol, maxFramePayloadLength),
-    handler)
+    handshaker = new WebsocketNettyHandshaker(uri, customHeaders, subprotocol, maxFramePayloadLength),
+    handler = handler)
 
   private val bootstrap = {
-    val b = new Bootstrap()
-    b.group(group)
+    def initializer = new ChannelInitializer[SocketChannel]() {
+      override def initChannel(ch: SocketChannel) {
+        val p = ch.pipeline()
+
+        for {sslCtx <- sslCtx} p.addLast(sslCtx.newHandler(ch.alloc(), uri.host, uri.port))
+
+        logLevel foreach {logLevel => p.addLast(new LoggingHandler(logLevel))}
+
+        p.addLast(
+          new HttpClientCodec(),
+          new HttpObjectAggregator(8192),
+          new websocketx.WebSocketFrameAggregator(Int.MaxValue),
+          clientHandler)
+      }
+    }
+
+    new Bootstrap()
+      .group(group)
       .channel(classOf[NioSocketChannel])
-      .handler(new ChannelInitializer[SocketChannel]() {
-        override def initChannel(ch: SocketChannel) {
-          val p = ch.pipeline()
-          for (sslCtx <- sslCtx) p.addLast(sslCtx.newHandler(ch.alloc(), uri.host, uri.port))
-          logLevel foreach (level => p.addLast(new LoggingHandler(level)))
-          p.addLast(
-            new HttpClientCodec(),
-            new HttpObjectAggregator(8192),
-            new WebSocketFrameAggregator(Integer.MAX_VALUE),
-            clientHandler)
-        }
-      })
+      .handler(initializer)
   }
 
   private def shutdown() =
-    group.shutdownGracefully(shutdownQuietPeriod.toMillis, shutdownTimeout.toMillis, TimeUnit.MILLISECONDS)
+    group.shutdownGracefully(
+      shutdownQuietPeriod.toMillis,
+      shutdownTimeout.toMillis,
+      TimeUnit.MILLISECONDS)
 
   def open(): Websocket = {
     bootstrap.connect(uri.host, uri.port).sync()
@@ -70,6 +77,10 @@ class WebsocketClient[T : MessageFormat] private(
 
 object WebsocketClient {
 
+  val defaultFramePayloadLength = 65536
+  val defaultShutdownQuietPeriod: FiniteDuration = 2.seconds
+  val defaultShutdownTimeout: FiniteDuration = 13.seconds
+
   def apply[T : MessageFormat](uri: String)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(Uri(uri), WebsocketHandler(receive))
   def apply[T : MessageFormat](uri: Uri)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(uri, WebsocketHandler(receive))
 
@@ -80,11 +91,11 @@ object WebsocketClient {
     logLevel: Option[LogLevel] = None,
     subprotocol: Option[String] = None,
     maybeSslCtx: Option[SslContext] = None,
-    maxFramePayloadLength: Int = 65536,
-    shutdownQuietPeriod: FiniteDuration = FiniteDuration(2, TimeUnit.SECONDS),
-    shutdownTimeout: FiniteDuration = FiniteDuration(15, TimeUnit.SECONDS)): WebsocketClient[T] = {
+    maxFramePayloadLength: Int = defaultFramePayloadLength,
+    shutdownQuietPeriod: FiniteDuration = defaultShutdownQuietPeriod,
+    shutdownTimeout: FiniteDuration = defaultShutdownTimeout): WebsocketClient[T] = {
 
-    require(shutdownTimeout >= shutdownQuietPeriod, "shutdownTimeout should be >= shutdownQuietPeriod")
+    require(shutdownTimeout >= shutdownQuietPeriod, "It is required that shutdownTimeout is >= shutdownQuietPeriod")
 
     val sslCtx = if (uri.secure) maybeSslCtx.orElse {
       Some {
@@ -107,7 +118,6 @@ object WebsocketClient {
       logLevel,
       maxFramePayloadLength,
       shutdownQuietPeriod,
-      shutdownTimeout
-    )
+      shutdownTimeout)
   }
 }

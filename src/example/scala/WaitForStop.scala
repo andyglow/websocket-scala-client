@@ -1,5 +1,3 @@
-import java.util.concurrent.Semaphore
-
 import com.github.andyglow.websocket.{Uri, Websocket, WebsocketClient}
 import org.slf4j.LoggerFactory
 
@@ -29,7 +27,7 @@ trait WaitForStop[T] extends DelayedInit {
 
   def done(): Unit = {
     ws.close andThen {
-      case _ => roundtrip success ()
+      case _ => roundtrip.success(())
     }
   }
 
