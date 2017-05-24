@@ -2,6 +2,7 @@ package com.github.andyglow.websocket
 
 import java.util.concurrent.TimeUnit
 
+import com.github.andyglow.websocket.util.{NettyFuture, Uri}
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
@@ -82,7 +83,47 @@ object WebsocketClient {
   val defaultShutdownTimeout: FiniteDuration = 13.seconds
 
   def apply[T : MessageFormat](uri: String)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(Uri(uri), WebsocketHandler(receive))
+
   def apply[T : MessageFormat](uri: Uri)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(uri, WebsocketHandler(receive))
+
+  case class Builder[T : MessageFormat](
+    uri: Uri,
+    receive: PartialFunction[T, Unit],
+    options: Builder.Options = Builder.Options()) {
+
+    def onFailure(x: PartialFunction[Throwable, Unit]): Builder[T] = copy(options = options.copy(exceptionHandler = x))
+
+    def onClose(x: => Unit): Builder[T] = copy(options = options.copy(closeHandler = _ => x))
+
+    def build(): WebsocketClient[T] = {
+      WebsocketClient.apply(
+        uri,
+        handler = WebsocketHandler(receive, options.exceptionHandler, options.closeHandler),
+        options.headers,
+        options.logLevel,
+        options.subprotocol,
+        options.maybeSslCtx,
+        options.maxFramePayloadLength,
+        options.shutdownQuietPeriod,
+        options.shutdownTimeout)
+    }
+  }
+
+  object Builder {
+    case class Options(
+      exceptionHandler: PartialFunction[Throwable, Unit] = PartialFunction.empty,
+      closeHandler: Unit => Unit = identity,
+      headers: Map[String, String] = Map.empty,
+      logLevel: Option[LogLevel] = None,
+      subprotocol: Option[String] = None,
+      maybeSslCtx: Option[SslContext] = None,
+      maxFramePayloadLength: Int = defaultFramePayloadLength,
+      shutdownQuietPeriod: FiniteDuration = defaultShutdownQuietPeriod,
+      shutdownTimeout: FiniteDuration = defaultShutdownTimeout)
+
+    def apply[T : MessageFormat](uri: String)(receive: PartialFunction[T, Unit]): Builder[T] = new Builder(Uri(uri), receive)
+    def apply[T : MessageFormat](uri: Uri)(receive: PartialFunction[T, Unit]): Builder[T] = new Builder(uri, receive)
+  }
 
   def apply[T : MessageFormat](
     uri: Uri,

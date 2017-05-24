@@ -2,23 +2,23 @@ import com.github.andyglow.websocket._
 
 object SimplifiedTextEchoWebSocketOrg extends WaitForStop[String] {
 
-  // 1. prepare ws-client
-  // 2. define message handler
-  val control = WebsocketClient[String](stringUri) {
-    case "stop" =>
-      logger.info(s"<<! stop")
-      done()
+  val client = {
+    val builder = WebsocketClient.Builder[String](stringUri) {
+      case "stop"         => logger.info(s"<<! stop"); done()
+      case str            => logger.info(s"<<| $str")
+    } onFailure {
+      case ex: Throwable  => logger.error(s"Error occurred.", ex)
+    } onClose {
+      logger.info(s"<<! connection closed"); done()
+    }
 
-    case str =>
-      logger.info(s"<<| $str")
+    builder.build()
   }
 
-  // 4. open websocket
-  val ws = control.open()
-
-  // 5. send messages
-  ws ! "hello"
-  ws ! "world"
-  ws ! "stop"
-
+  def run(): Unit = {
+    socket ! "hello"
+    socket ! "world"
+    socket ! "close-connection"
+    socket ! "stop"
+  }
 }

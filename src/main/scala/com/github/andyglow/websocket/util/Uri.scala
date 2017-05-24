@@ -1,4 +1,4 @@
-package com.github.andyglow.websocket
+package com.github.andyglow.websocket.util
 
 import java.net.URI
 

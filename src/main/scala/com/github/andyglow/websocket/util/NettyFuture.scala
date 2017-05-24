@@ -1,10 +1,10 @@
-package com.github.andyglow.websocket
+package com.github.andyglow.websocket.util
 
 import io.netty.util.concurrent.{GenericFutureListener, Future => NFuture}
 
 import scala.concurrent.{Future, Promise}
 
-private [websocket] object NettyFuture {
+object NettyFuture {
 
   def apply[T](f: NFuture[T]): Future[T] = {
     val p = Promise[T]()

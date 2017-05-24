@@ -8,6 +8,7 @@ import io.netty.util.CharsetUtil
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.stm._
+import scala.util.control.NonFatal
 
 private[websocket] class WebsocketNettytHandler[T : MessageFormat](
   handshaker: WebsocketNettyHandshaker,
@@ -55,8 +56,10 @@ private[websocket] class WebsocketNettytHandler[T : MessageFormat](
   override def channelRead0(ctx: ChannelHandlerContext, msg: ByteBufHolder): Unit = {
     val ch = ctx.channel()
     def controls: PartialFunction[ByteBufHolder, ChannelFuture] = {
-        case msg: CloseWebSocketFrame   => ch.close()
-        case msg: FullHttpResponse      =>
+        case msg: CloseWebSocketFrame =>
+          try {handler.onClose(())} catch {case NonFatal(ex) => handler.reportFailure(ex)}
+          ch.close()
+        case msg: FullHttpResponse =>
           if (!handshaker.isHandshakeComplete) {
             try {
               handshaker.finishHandshake(ch, msg)
@@ -82,7 +85,9 @@ private[websocket] class WebsocketNettytHandler[T : MessageFormat](
     ctx.close()
     atomic { implicit txn =>
       val f = handshakerFuture()
-      if (!f.isDone) f.setFailure(cause) else handler.onFailure(cause)
+      if (!f.isDone) f.setFailure(cause) else {
+        handler.reportFailure(cause)
+      }
     }
   }
 

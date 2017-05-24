@@ -17,11 +17,11 @@ object TextEchoWebSocketOrg extends WaitForStop[String] {
     }
   }
 
-  val control = WebsocketClient(stringUri, protocolHandler)
-  val ws = control.open()
+  val client = WebsocketClient(stringUri, protocolHandler)
 
-  ws ! "hello"
-  ws ! "world"
-  ws ! "repeat and close"
-
+  def run(): Unit = {
+    socket ! "hello"
+    socket ! "world"
+    socket ! "repeat and close"
+  }
 }

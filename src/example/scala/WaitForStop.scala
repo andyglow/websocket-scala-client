@@ -1,4 +1,5 @@
-import com.github.andyglow.websocket.{Uri, Websocket, WebsocketClient}
+import com.github.andyglow.websocket.util.Uri
+import com.github.andyglow.websocket.{Websocket, WebsocketClient}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
@@ -7,8 +8,10 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
-trait WaitForStop[T] extends DelayedInit {
+trait WaitForStop[T] {
 
+  // please use TestServer which could be located in `test` sources to run test ws server
+  // "localhost:8080"
   val host = "echo.websocket.org"
   val binaryUri = Uri(s"ws://$host/?encoding=binary")
   val stringUri = Uri(s"ws://$host")
@@ -18,23 +21,21 @@ trait WaitForStop[T] extends DelayedInit {
   private val roundtrip = Promise[Unit]()
   private val initCode = new ListBuffer[() => Unit]
 
-  def control: WebsocketClient[T]
-  def ws: Websocket
+  def client: WebsocketClient[T]
+  lazy val socket: Websocket = client.open()
 
-  override def delayedInit(body: => Unit): Unit = {
-    initCode += (() => body)
-  }
+  def run(): Unit
 
   def done(): Unit = {
-    ws.close andThen {
+    socket.close andThen {
       case _ => roundtrip.success(())
     }
   }
 
   def main(args: Array[String]): Unit = {
-    for (proc <- initCode) proc()
+    run()
 
-    val f = roundtrip.future flatMap (_ => control.shutdownAsync) andThen {
+    val f = roundtrip.future flatMap (_ => client.shutdownAsync) andThen {
       case Success(_) => logger.info("!!! [closed]")
       case Failure(x) => logger.error("!!! [failure on close]", x)
     }
