@@ -31,8 +31,8 @@ object Uri {
     val host = uri.getHost
     val port = uri.getPort
     val path = uri.getPath
-    val queryList = if (uri.getQuery == null) List.empty else
-      (uri.getQuery split "&").toList map { token =>
+    val queryList = if (uri.getRawQuery == null) List.empty else
+      (uri.getRawQuery split "&").toList map { token =>
         val Array(k, v) = token split "="
         k -> v
       }
