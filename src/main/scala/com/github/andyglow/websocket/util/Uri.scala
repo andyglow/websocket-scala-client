@@ -1,6 +1,6 @@
 package com.github.andyglow.websocket.util
 
-import java.net.URI
+import java.net.{URI, URLDecoder}
 
 case class Uri(
   secure: Boolean,
@@ -34,7 +34,7 @@ object Uri {
     val queryList = if (uri.getRawQuery == null) List.empty else
       (uri.getRawQuery split "&").toList map { token =>
         val Array(k, v) = token split "="
-        k -> v
+        k -> URLDecoder.decode(v,"UTF-8")
       }
 
     Uri (
