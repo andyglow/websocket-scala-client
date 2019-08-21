@@ -1,11 +1,10 @@
 package com.github.andyglow.websocket
 
-import io.netty.buffer.{ByteBuf, ByteBufHolder}
+import io.netty.buffer.ByteBufHolder
 import io.netty.channel.{ChannelFuture, ChannelHandlerContext, ChannelPromise, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http.FullHttpResponse
 import io.netty.handler.codec.http.websocketx._
 import io.netty.util.CharsetUtil
-import org.slf4j.LoggerFactory
 
 import scala.concurrent.stm._
 import scala.util.control.NonFatal

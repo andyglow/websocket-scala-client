@@ -1,7 +1,7 @@
 package com.github.andyglow.websocket
 
 import io.netty.buffer.{ByteBuf, ByteBufHolder, Unpooled}
-import io.netty.handler.codec.http.websocketx.{BinaryWebSocketFrame, TextWebSocketFrame, WebSocketFrame}
+import io.netty.handler.codec.http.websocketx.{BinaryWebSocketFrame, TextWebSocketFrame}
 
 
 sealed trait MessageAdapter[T] {
