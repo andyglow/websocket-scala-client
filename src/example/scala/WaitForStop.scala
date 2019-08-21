@@ -2,7 +2,6 @@ import com.github.andyglow.websocket.util.Uri
 import com.github.andyglow.websocket.{Websocket, WebsocketClient}
 import org.slf4j.LoggerFactory
 
-import scala.collection.mutable.ListBuffer
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -19,7 +18,6 @@ trait WaitForStop[T] {
   val logger = LoggerFactory.getLogger("echo-websocket-example")
 
   private val roundtrip = Promise[Unit]()
-  private val initCode = new ListBuffer[() => Unit]
 
   def client: WebsocketClient[T]
   lazy val socket: Websocket = client.open()

@@ -6,15 +6,18 @@ import io.netty.handler.codec.http.websocketx._
 
 import scala.concurrent.{ExecutionContext, Future}
 
+
 trait Websocket {
-  def ![T : MessageFormat](msg: T): Unit
+
+  def ![T : MessageAdapter](msg: T): Unit
+
   def close(implicit ec: ExecutionContext): Future[Unit]
 }
 
 private[websocket] class WebsocketImpl(ch: Channel) extends Websocket {
 
-  override def ![T : MessageFormat](msg: T): Unit = {
-    val format = implicitly[MessageFormat[T]]
+  override def ![T : MessageAdapter](msg: T): Unit = {
+    val format = implicitly[MessageAdapter[T]]
     ch writeAndFlush {format format msg}
   }
 

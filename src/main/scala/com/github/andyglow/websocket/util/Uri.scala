@@ -2,6 +2,7 @@ package com.github.andyglow.websocket.util
 
 import java.net.{URI, URLDecoder}
 
+
 case class Uri(
   secure: Boolean,
   host: String,
@@ -21,6 +22,7 @@ case class Uri(
 }
 
 object Uri {
+
   val defaultPorts: Map[String, Int] = Map("ws" -> 80, "wss" -> 443)
 
   def apply(uri: String): Uri = apply(new URI(uri))
@@ -33,8 +35,8 @@ object Uri {
     val path = uri.getPath
     val queryList = if (uri.getRawQuery == null) List.empty else
       (uri.getRawQuery split "&").toList map { token =>
-        val Array(k, v) = token split "="
-        k -> URLDecoder.decode(v,"UTF-8")
+        val Array(k: String, v: String) = token split "="
+        (k, URLDecoder.decode(v, "UTF-8"))
       }
 
     Uri (

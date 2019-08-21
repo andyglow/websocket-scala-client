@@ -10,34 +10,18 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.stm._
 import scala.util.control.NonFatal
 
-private[websocket] class WebsocketNettytHandler[T : MessageFormat](
-  handshaker: WebsocketNettyHandshaker,
-  private val handler: WebsocketHandler[T]) extends SimpleChannelInboundHandler[ByteBufHolder] {
 
-  private val logger = LoggerFactory.getLogger(classOf[WebsocketNettytHandler[T]])
+private[websocket] class WebsocketNettytHandler[T](
+  handshaker: WebsocketNettyHandshaker,
+  private val handler: WebsocketHandler[T])(implicit
+  adapter: MessageAdapter[T]) extends SimpleChannelInboundHandler[ByteBufHolder] {
 
   private val handshakerFuture = Ref.make[ChannelPromise]()
+
   @volatile private var websocket: Websocket = _
 
   private val msgHandler: PartialFunction[ByteBufHolder, Unit] = {
-    implicitly[MessageFormat[T]] match {
-      case x if x == MessageFormat.String => {
-        case msg: TextWebSocketFrame =>
-          try {
-            handler.asInstanceOf[WebsocketHandler[String]].receive(msg.text())
-          } catch {
-            case ex: Throwable => logger.error("Error matching frame", ex)
-          }
-      }
-      case x if x == MessageFormat.ByteBuf => {
-        case msg: BinaryWebSocketFrame =>
-          try {
-            handler.asInstanceOf[WebsocketHandler[ByteBuf]].receive(msg.content())
-          } catch {
-            case ex: Throwable => logger.error("Error matching frame", ex)
-          }
-      }
-    }
+    case msg => adapter.receive(handler, msg)
   }
 
   private[websocket] def waitForHandshake(): Websocket = {
@@ -56,7 +40,7 @@ private[websocket] class WebsocketNettytHandler[T : MessageFormat](
   override def channelRead0(ctx: ChannelHandlerContext, msg: ByteBufHolder): Unit = {
     val ch = ctx.channel()
     def controls: PartialFunction[ByteBufHolder, ChannelFuture] = {
-        case msg: CloseWebSocketFrame =>
+        case _: CloseWebSocketFrame =>
           try {handler.onClose(())} catch {case NonFatal(ex) => handler.reportFailure(ex)}
           ch.close()
         case msg: FullHttpResponse =>
@@ -90,5 +74,4 @@ private[websocket] class WebsocketNettytHandler[T : MessageFormat](
       }
     }
   }
-
 }

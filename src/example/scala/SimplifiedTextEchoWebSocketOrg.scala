@@ -9,7 +9,7 @@ object SimplifiedTextEchoWebSocketOrg extends WaitForStop[String] {
     } onFailure {
       case ex: Throwable  => logger.error(s"Error occurred.", ex)
     } onClose {
-      logger.info(s"<<! connection closed"); done()
+      logger.info(s"<<! connection closed");
     }
 
     builder.build()

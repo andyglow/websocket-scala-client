@@ -1,8 +1,8 @@
 package com.github.andyglow.websocket.testserver
 
-import akka.http.scaladsl.model.ws.{Message, TextMessage}
-import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
+import akka.http.scaladsl.model.ws.Message
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
+import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 
 class ConnectionTerminatingGraphStage(pf: PartialFunction[Message, Unit]) extends GraphStage[FlowShape[Message, Message]] {
   private val in = Inlet[Message]("Close.in")

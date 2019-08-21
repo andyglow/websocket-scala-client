@@ -4,6 +4,7 @@ import io.netty.util.concurrent.{GenericFutureListener, Future => NFuture}
 
 import scala.concurrent.{Future, Promise}
 
+
 object NettyFuture {
 
   def apply[T](f: NFuture[T]): Future[T] = {
@@ -16,5 +17,4 @@ object NettyFuture {
     f addListener l
     p.future
   }
-
 }

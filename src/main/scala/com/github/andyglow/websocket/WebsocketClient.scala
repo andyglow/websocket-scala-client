@@ -16,7 +16,7 @@ import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-class WebsocketClient[T : MessageFormat] private(
+class WebsocketClient[T: MessageAdapter] private(
   uri: Uri,
   subprotocol: Option[String],
   sslCtx: Option[SslContext],
@@ -34,8 +34,10 @@ class WebsocketClient[T : MessageFormat] private(
     handler = handler)
 
   private val bootstrap = {
+
     def initializer = new ChannelInitializer[SocketChannel]() {
-      override def initChannel(ch: SocketChannel) {
+
+      override def initChannel(ch: SocketChannel): Unit = {
         val p = ch.pipeline()
 
         for {sslCtx <- sslCtx} p.addLast(sslCtx.newHandler(ch.alloc(), uri.host, uri.port))
@@ -79,14 +81,16 @@ class WebsocketClient[T : MessageFormat] private(
 object WebsocketClient {
 
   val defaultFramePayloadLength = 65536
+
   val defaultShutdownQuietPeriod: FiniteDuration = 2.seconds
+
   val defaultShutdownTimeout: FiniteDuration = 13.seconds
 
-  def apply[T : MessageFormat](uri: String)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(Uri(uri), WebsocketHandler(receive))
+  def apply[T: MessageAdapter](uri: String)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(Uri(uri), WebsocketHandler(receive))
 
-  def apply[T : MessageFormat](uri: Uri)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(uri, WebsocketHandler(receive))
+  def apply[T: MessageAdapter](uri: Uri)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(uri, WebsocketHandler(receive))
 
-  case class Builder[T : MessageFormat](
+  case class Builder[T: MessageAdapter](
     uri: Uri,
     receive: PartialFunction[T, Unit],
     options: Builder.Options = Builder.Options()) {
@@ -96,6 +100,7 @@ object WebsocketClient {
     def onClose(x: => Unit): Builder[T] = copy(options = options.copy(closeHandler = _ => x))
 
     def build(): WebsocketClient[T] = {
+
       WebsocketClient.apply(
         uri,
         handler = WebsocketHandler(receive, options.exceptionHandler, options.closeHandler),
@@ -110,6 +115,7 @@ object WebsocketClient {
   }
 
   object Builder {
+
     case class Options(
       exceptionHandler: PartialFunction[Throwable, Unit] = PartialFunction.empty,
       closeHandler: Unit => Unit = identity,
@@ -121,11 +127,12 @@ object WebsocketClient {
       shutdownQuietPeriod: FiniteDuration = defaultShutdownQuietPeriod,
       shutdownTimeout: FiniteDuration = defaultShutdownTimeout)
 
-    def apply[T : MessageFormat](uri: String)(receive: PartialFunction[T, Unit]): Builder[T] = new Builder(Uri(uri), receive)
-    def apply[T : MessageFormat](uri: Uri)(receive: PartialFunction[T, Unit]): Builder[T] = new Builder(uri, receive)
+    def apply[T: MessageAdapter](uri: String)(receive: PartialFunction[T, Unit]): Builder[T] = new Builder(Uri(uri), receive)
+
+    def apply[T: MessageAdapter](uri: Uri)(receive: PartialFunction[T, Unit]): Builder[T] = new Builder(uri, receive)
   }
 
-  def apply[T : MessageFormat](
+  def apply[T: MessageAdapter](
     uri: Uri,
     handler: WebsocketHandler[T],
     headers: Map[String, String] = Map.empty,
@@ -138,10 +145,8 @@ object WebsocketClient {
 
     require(shutdownTimeout >= shutdownQuietPeriod, "It is required that shutdownTimeout is >= shutdownQuietPeriod")
 
-    val sslCtx = if (uri.secure) maybeSslCtx.orElse {
-      Some {
-        SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build()
-      }
+    val sslCtx = if (uri.secure) maybeSslCtx orElse Some {
+      SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build()
     } else
       None
 
