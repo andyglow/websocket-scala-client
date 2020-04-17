@@ -13,7 +13,7 @@ object Dependencies {
   val scalaStm    = "org.scala-stm" %% "scala-stm"        % "0.9.1"       % Compile
 
   val akkaHttp    = "com.typesafe.akka" %% "akka-http"    % "10.1.9"      % Test
-  val akkaStream  = "com.typesafe.akka" %% "akka-stream"  % "2.5.24"      % Test
+  val akkaStream  = "com.typesafe.akka" %% "akka-stream"  % "2.5.31"      % Test
 
   val all = Seq(nettyAll, nettyHttp, scalaStm, slf4jApi, slf4jSimple, akkaHttp, akkaStream)
 }
