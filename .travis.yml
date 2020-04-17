@@ -1,0 +1,21 @@
+dist: trusty
+
+sudo: false
+
+language: scala
+
+scala:
+  - 2.11.12
+  - 2.12.8
+  - 2.13.0
+
+jdk: openjdk11
+
+cache:
+  directories:
+    - $HOME/.ivy2
+    - $HOME/.sbt
+
+# script: sbt ++$TRAVIS_SCALA_VERSION clean coverage test
+
+# after_success: sbt ++$TRAVIS_SCALA_VERSION coverageReport coverageAggregate coveralls
