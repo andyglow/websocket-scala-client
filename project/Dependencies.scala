@@ -4,7 +4,7 @@ object Dependencies {
   lazy val Examples = config("example") extend Compile
 
   val nettyVersion = "4.1.39.Final"
-  val slf4jVersion = "1.7.28"
+  val slf4jVersion = "1.7.30"
 
   val nettyAll    = "io.netty"      % "netty-all" 			  % nettyVersion  % Compile
   val nettyHttp   = "io.netty"      % "netty-codec-http" 	% nettyVersion  % Compile
