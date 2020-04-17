@@ -97,7 +97,7 @@ lazy val commons = Seq(
         ReleaseStep(action = Command.process("sonatypeReleaseAll", _), enableCrossBuild = true),
         pushChanges),
 
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % Test
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test
 )
 
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
