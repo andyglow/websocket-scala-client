@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   lazy val Examples = config("example") extend Compile
 
-  val nettyVersion = "4.1.39.Final"
+  val nettyVersion = "4.1.48.Final"
   val slf4jVersion = "1.7.28"
 
   val nettyAll    = "io.netty"      % "netty-all" 			  % nettyVersion  % Compile
