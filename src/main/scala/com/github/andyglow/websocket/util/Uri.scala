@@ -35,8 +35,10 @@ object Uri {
     val path = uri.getPath
     val queryList = if (uri.getRawQuery == null) List.empty else
       (uri.getRawQuery split "&").toList map { token =>
-        val Array(k: String, v: String) = token split "="
-        (k, URLDecoder.decode(v, "UTF-8"))
+        token split "=" match {
+          case Array(k: String, v: String) => (k, URLDecoder.decode(v, "UTF-8"))
+          case arr                         => throw new Exception(s"Query Parameter Parse Exception. Invalid token [$token] lead to [${arr mkString ","}]. Expected 'k=v' form")
+        }
       }
 
     Uri (

@@ -6,8 +6,8 @@ language: scala
 
 scala:
   - 2.11.12
-  - 2.12.8
-  - 2.13.0
+  - 2.12.10
+  - 2.13.1
 
 jdk: openjdk11
 
@@ -16,6 +16,6 @@ cache:
     - $HOME/.ivy2
     - $HOME/.sbt
 
-# script: sbt ++$TRAVIS_SCALA_VERSION clean coverage test
+script: sbt ++$TRAVIS_SCALA_VERSION clean coverage test
 
-# after_success: sbt ++$TRAVIS_SCALA_VERSION coverageReport coverageAggregate coveralls
+after_success: sbt ++$TRAVIS_SCALA_VERSION coverageReport coverageAggregate coveralls
