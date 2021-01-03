@@ -18,9 +18,9 @@ lazy val commons = Seq(
 
     organizationName := "andyglow",
 
-    scalaVersion := "2.13.0",
+    scalaVersion := "2.13.4",
 
-    crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0"),
+    crossScalaVersions := Seq("2.11.12", "2.12.12", "2.13.4"),
 
     scalacOptions ++= {
         val options = Seq(
