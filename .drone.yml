@@ -1,7 +1,7 @@
 ---
 {
    "kind": "pipeline",
-   "name": "typesafe-config-scala/2.13",
+   "name": "websocket-scala-client/2.13",
    "steps": [
       {
          "commands": [
@@ -48,7 +48,7 @@
 ---
 {
    "kind": "pipeline",
-   "name": "typesafe-config-scala/2.12",
+   "name": "websocket-scala-client/2.12",
    "steps": [
       {
          "commands": [
@@ -95,7 +95,7 @@
 ---
 {
    "kind": "pipeline",
-   "name": "typesafe-config-scala/2.11",
+   "name": "websocket-scala-client/2.11",
    "steps": [
       {
          "commands": [
@@ -142,9 +142,9 @@
 ---
 {
    "depends_on": [
-      "typesafe-config-scala/2.13",
-      "typesafe-config-scala/2.12",
-      "typesafe-config-scala/2.11"
+      "websocket-scala-client/2.13",
+      "websocket-scala-client/2.12",
+      "websocket-scala-client/2.11"
    ],
    "kind": "pipeline",
    "name": "finalize",
