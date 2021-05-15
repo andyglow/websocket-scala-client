@@ -2,6 +2,11 @@ local Project = "websocket-scala-client";
 
 local Dir = Project + "/";
 
+local ver211 = "2.11";
+local ver212 = "2.12";
+local ver213 = "2.13";
+local ver3   = "3.0";
+
 local AbstractPipeline(name) = {
   kind: "pipeline",
   type: "docker",
@@ -71,17 +76,19 @@ local Notify(name, ver) = {
 };
 
 [
-  Pipeline("2.13", SbtCleanTest("2.13"), Notify("slack", "2.13")),
-  Pipeline("2.12", SbtCleanTest("2.12"), Notify("slack", "2.12")),
-  Pipeline("2.11", SbtCleanTest("2.11"), Notify("slack", "2.11")),
-  AbstractPipeline("finalize") + Workspace("2.13") + {
+  Pipeline(ver3   , SbtCleanTest(ver3)   , Notify("slack", ver3)),
+  Pipeline(ver213 , SbtCleanTest(ver213) , Notify("slack", ver213)),
+  Pipeline(ver212 , SbtCleanTest(ver212) , Notify("slack", ver212)),
+  Pipeline(ver211 , SbtCleanTest(ver211) , Notify("slack", ver211)),
+  AbstractPipeline("finalize") + Workspace(ver213) + {
     steps: [
-      Coverage("scoverage", "2.13")
+      Coverage("scoverage", ver213)
     ],
     depends_on: [
-      Dir + "2.13",
-      Dir + "2.12",
-      Dir + "2.11"
+      Dir + ver3,
+      Dir + ver213,
+      Dir + ver212,
+      Dir + ver211
     ]
   },
 ]

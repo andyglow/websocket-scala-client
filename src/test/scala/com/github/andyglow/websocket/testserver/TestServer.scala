@@ -11,8 +11,8 @@ import akka.stream.scaladsl.{Flow, Sink}
 object TestServer {
 
   def main(args: Array[String]): Unit = {
-    implicit val system = ActorSystem()
-    implicit val materializer = ActorMaterializer()
+    implicit val system: ActorSystem = ActorSystem()
+    implicit val materializer: ActorMaterializer = ActorMaterializer()
 
     val service = Flow[Message]
       .via(new ConnectionTerminatingGraphStage({
@@ -26,7 +26,7 @@ object TestServer {
       }
 
     val requestHandler: HttpRequest => HttpResponse = {
-      req: HttpRequest =>
+      (req: HttpRequest) =>
         req.header[UpgradeToWebSocket] match {
           case Some(upgrade) => upgrade handleMessages service
           case None          => HttpResponse(400, entity = "Not a valid websocket request!")

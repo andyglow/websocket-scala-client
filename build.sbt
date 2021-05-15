@@ -8,7 +8,7 @@ import ScalaVer._
 
 
 // https://github.com/xerial/sbt-sonatype/issues/71
-publishTo in ThisBuild := sonatypePublishTo.value
+ThisBuild / publishTo  := sonatypePublishTo.value
 
 lazy val commons = ScalaVer.settings ++ Seq(
 
@@ -22,7 +22,7 @@ lazy val commons = ScalaVer.settings ++ Seq(
 
     scalacOptions := CompilerOptions(scalaV.value),
 
-    scalacOptions in (Compile,doc) ++= Seq(
+    Compile / doc / scalacOptions ++= Seq(
         "-groups",
         "-implicits",
         "-no-link-warnings"),
@@ -77,10 +77,17 @@ resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 lazy val root = (project in file("."))
   .configs(Examples)
   .settings(inConfig(Examples)(compileBase ++ compileSettings ++ Seq(
-    run     := Defaults.runTask(fullClasspath in Examples, mainClass in run, runner in run).evaluated,
-    runMain := Defaults.runMainTask(fullClasspath in Examples, runner in run).evaluated)))
+    run     := Defaults.runTask(Examples / fullClasspath , run / mainClass, run / runner).evaluated,
+    runMain := Defaults.runMainTask(Examples / fullClasspath, run / runner).evaluated)))
   .settings(
       commons,
       name := "websocket-scala-client",
-      libraryDependencies ++= all)
+      libraryDependencies ++= Seq(
+          nettyAll,
+          nettyHttp,
+          scalaStm,
+          slf4jApi,
+          slf4jSimple,
+          akkaHttp(scalaV.value).cross(CrossVersion.for3Use2_13),
+          akkaStream(scalaV.value).cross(CrossVersion.for3Use2_13)))
 
