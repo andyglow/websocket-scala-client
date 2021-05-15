@@ -1,6 +1,53 @@
 ---
 {
    "kind": "pipeline",
+   "name": "websocket-scala-client/3.0",
+   "steps": [
+      {
+         "commands": [
+            "sbt clean test"
+         ],
+         "environment": {
+            "CODECOV_TOKEN": {
+               "from_secret": "codecov_token"
+            },
+            "DRONE_WORKSPACE_PATH": "/drone/src/3.0",
+            "SCALA_VER": "3.0"
+         },
+         "image": "andyglow/sbt:latest",
+         "name": "build",
+         "when": {
+            "branch": "master"
+         }
+      },
+      {
+         "image": "plugins/slack",
+         "name": "slack",
+         "settings": {
+            "channel": "builds",
+            "link_names": true,
+            "template": "{{#success build.status}}\n  {{repo.name}}: build {{build.number}} for ver 3.0 succeeded (spent {{since build.started}}). Good job. {{build.link}}\n{{else}}\n  {{repo.name}}: build {{build.number}} for ver 3.0 failed. Fix please. {{build.link}}\n{{/success}}\n",
+            "username": "drone",
+            "webhook": {
+               "from_secret": "slack_webhook_url"
+            }
+         },
+         "when": {
+            "status": [
+               "success",
+               "failure"
+            ]
+         }
+      }
+   ],
+   "type": "docker",
+   "workspace": {
+      "path": "3.0"
+   }
+}
+---
+{
+   "kind": "pipeline",
    "name": "websocket-scala-client/2.13",
    "steps": [
       {
@@ -142,6 +189,7 @@
 ---
 {
    "depends_on": [
+      "websocket-scala-client/3.0",
       "websocket-scala-client/2.13",
       "websocket-scala-client/2.12",
       "websocket-scala-client/2.11"

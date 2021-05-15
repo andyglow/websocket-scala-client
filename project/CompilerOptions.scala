@@ -26,11 +26,14 @@ object CompilerOptions {
     "-Xsource:2.13"
   )
 
+  private val opts300 = base // FIXME
+
   def apply(v: ScalaVer): Seq[String] = {
     v match {
       case ScalaVer._211 => opts211
       case ScalaVer._212 => opts212
       case ScalaVer._213 => opts213
+      case ScalaVer._300 => opts300
     }
   }
 }
