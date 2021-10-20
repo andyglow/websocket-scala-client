@@ -17,7 +17,7 @@ object Dependencies {
     def apply(scalaVer: ScalaVer) = {
       val v = scalaVer match {
         case ScalaVer._211 => "10.1.9"
-        case _             => "10.2.4"
+        case _             => "10.2.6"
 
       }
 
@@ -28,9 +28,8 @@ object Dependencies {
   object akkaStream {
     def apply(scalaVer: ScalaVer) = {
       val v = scalaVer match {
-        case ScalaVer._211 => "2.5.9"
+        case ScalaVer._211 => "2.5.32"
         case _             => "2.6.16"
-
       }
 
       "com.typesafe.akka" %% "akka-stream" % v % Test
