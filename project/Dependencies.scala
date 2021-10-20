@@ -29,8 +29,7 @@ object Dependencies {
     def apply(scalaVer: ScalaVer) = {
       val v = scalaVer match {
         case ScalaVer._211 => "2.5.32"
-        case _             => "2.6.9"
-
+        case _             => "2.6.16"
       }
 
       "com.typesafe.akka" %% "akka-stream" % v % Test
