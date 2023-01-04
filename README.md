@@ -1,6 +1,6 @@
 # Websocket Client for Scala
 
-[![Build Status](https://cloud.drone.io/api/badges/andyglow/websocket-scala-client/status.svg?ref=refs/heads/master)](https://cloud.drone.io/andyglow/websocket-scala-client)
+[![Build Status](https://github.com/andyglow/websocket-scala-client/actions/workflows/ci.yml/badge.svg)]()
 [![mvn](https://img.shields.io/badge/dynamic/json.svg?label=mvn&query=%24.response.docs%5B0%5D.latestVersion&url=https%3A%2F%2Fsearch.maven.org%2Fsolrsearch%2Fselect%3Fq%3Dwebsocket-scala-client_2.13%26start%3D0%26rows%3D1)](https://search.maven.org/artifact/com.github.andyglow/websocket-scala-client_2.13/)
 
 WebSocket client based on Netty

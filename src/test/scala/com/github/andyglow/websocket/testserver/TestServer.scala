@@ -8,7 +8,7 @@ import akka.stream._
 import akka.stream.scaladsl.{Flow, Sink}
 
 
-object TestServer {
+object TestServer extends CrossScalaVersionAkkaApi {
 
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem()
@@ -32,7 +32,7 @@ object TestServer {
     }
 
     val bindingFuture =
-      Http().newServerAt(interface = "localhost", port = 8080).bindSync(requestHandler)
+      launchServer(interface = "localhost", port = 8080, requestHandler)
 
     println(s"Test WS Server is listening at http://localhost:8080/\nPress RETURN to stop...")
     scala.io.StdIn.readLine()
