@@ -72,7 +72,7 @@ lazy val commons = ScalaVer.settings ++ Seq(
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.14" % Test
 )
 
-resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
+resolvers ++= Seq("snapshots", "releases").flatMap(Resolver.sonatypeOssRepos)
 
 lazy val root = (project in file("."))
   .configs(Examples)

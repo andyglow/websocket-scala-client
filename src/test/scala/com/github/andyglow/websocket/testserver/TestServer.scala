@@ -12,17 +12,15 @@ object TestServer {
 
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem()
-    implicit val materializer: ActorMaterializer = ActorMaterializer()
+    implicit val materializer: Materializer = SystemMaterializer(system).materializer
 
     val service = Flow[Message]
       .via(new ConnectionTerminatingGraphStage({
         case x: TextMessage if x.getStrictText == "close-connection" =>
       }))
       .mapConcat {
-        case tm: TextMessage => TextMessage(tm.textStream) :: Nil
-        case bm: BinaryMessage =>
-          bm.dataStream.runWith(Sink.ignore)
-          Nil
+        case tm: TextMessage   => TextMessage(tm.textStream) :: Nil
+        case bm: BinaryMessage => BinaryMessage(bm.dataStream) :: Nil
       }
 
     val requestHandler: HttpRequest => HttpResponse = {
@@ -34,7 +32,7 @@ object TestServer {
     }
 
     val bindingFuture =
-      Http().bindAndHandleSync(requestHandler, interface = "localhost", port = 8080)
+      Http().newServerAt(interface = "localhost", port = 8080).bindSync(requestHandler)
 
     println(s"Test WS Server is listening at http://localhost:8080/\nPress RETURN to stop...")
     scala.io.StdIn.readLine()

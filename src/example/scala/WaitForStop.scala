@@ -9,9 +9,7 @@ import scala.util.{Failure, Success}
 
 trait WaitForStop[T] {
 
-  // please use TestServer which could be located in `test` sources to run test ws server
-  // "localhost:8080"
-  val host = "echo.websocket.org"
+  val host = "localhost:8080"
   val binaryUri = Uri(s"ws://$host/?encoding=binary")
   val stringUri = Uri(s"ws://$host")
 
