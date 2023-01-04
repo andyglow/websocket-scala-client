@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+    paths-ignore: [ "**.md" ]
+  pull_request:
+    branches: [ "master" ]
+    paths-ignore: [ "**.md" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK
+      uses: olafurpg/setup-scala@v13
+      with:
+        java-version: 'amazon-corretto@1.17.0'
+    - name: 2.11
+      run: SCALA_VER=2.11 sbt test
+    - name: 2.12
+      run: SCALA_VER=2.12 sbt test
+    - name: 2.13
+      run: SCALA_VER=2.13 sbt test
+    - name: 3
+      run: SCALA_VER=3.0 sbt test
+    # Optional: This step uploads information to the GitHub dependency graph and unblocking Dependabot alerts for the repository
+    # - name: Upload dependency graph
+    #  uses: scalacenter/sbt-dependency-submission@ab086b50c947c9774b70f39fc7f6e20ca2706c91
