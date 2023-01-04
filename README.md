@@ -86,4 +86,4 @@ or
 sbt> example:runMain [BinaryEchoWebSocketOrg|SimplifiedTextEchoWebSocketOrg|TextEchoWebSocketOrg]
 ```
 
-Make sure `TestServer` resided in `test` is running.
+> Make sure `TestServer` resided in `test` is running.
