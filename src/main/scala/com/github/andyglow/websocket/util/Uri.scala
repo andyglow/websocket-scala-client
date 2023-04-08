@@ -3,7 +3,7 @@ package com.github.andyglow.websocket.util
 import java.net.{URI, URLDecoder}
 
 
-case class Uri(
+final case class Uri(
   secure: Boolean,
   host: String,
   port: Int,

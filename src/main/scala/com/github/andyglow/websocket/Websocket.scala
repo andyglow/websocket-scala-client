@@ -12,6 +12,9 @@ trait Websocket {
   def ![T : MessageAdapter](msg: T): Unit
 
   def close(implicit ec: ExecutionContext): Future[Unit]
+
+  def ping(implicit ec: ExecutionContext): Unit
+
 }
 
 private[websocket] class WebsocketImpl(ch: Channel) extends Websocket {
@@ -26,4 +29,8 @@ private[websocket] class WebsocketImpl(ch: Channel) extends Websocket {
     val f = NettyFuture(ch.closeFuture())
     f map {_ => ()}
   }
+
+  override def ping(implicit ec: ExecutionContext): Unit =
+    ch.writeAndFlush(new PingWebSocketFrame())
+
 }

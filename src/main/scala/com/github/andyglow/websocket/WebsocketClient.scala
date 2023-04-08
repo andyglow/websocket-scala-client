@@ -90,7 +90,7 @@ object WebsocketClient {
 
   def apply[T: MessageAdapter](uri: Uri)(receive: PartialFunction[T, Unit]): WebsocketClient[T] = apply(uri, WebsocketHandler(receive))
 
-  case class Builder[T: MessageAdapter](
+  final case class Builder[T: MessageAdapter](
     uri: Uri,
     receive: PartialFunction[T, Unit],
     options: Builder.Options = Builder.Options()) {
@@ -116,7 +116,7 @@ object WebsocketClient {
 
   object Builder {
 
-    case class Options(
+    final case class Options(
       exceptionHandler: PartialFunction[Throwable, Unit] = PartialFunction.empty,
       closeHandler: Unit => Unit = identity,
       headers: Map[String, String] = Map.empty,

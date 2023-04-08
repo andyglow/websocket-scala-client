@@ -26,6 +26,9 @@ object WebsocketHandler {
     override def ![T: MessageAdapter](msg: T): Unit = ()
 
     override def close(implicit ec: ExecutionContext): Future[Unit] = Future.successful(())
+
+    override def ping(implicit ec: ExecutionContext): Unit = ()
+
   }
 
   def apply[T : MessageAdapter](
