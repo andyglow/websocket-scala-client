@@ -69,7 +69,7 @@ lazy val commons = ScalaVer.settings ++ Seq(
         ReleaseStep(action = Command.process("sonatypeReleaseAll", _), enableCrossBuild = true),
         pushChanges),
 
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.16" % Test
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.17" % Test
 )
 
 resolvers ++= Seq("snapshots", "releases").flatMap(Resolver.sonatypeOssRepos)
