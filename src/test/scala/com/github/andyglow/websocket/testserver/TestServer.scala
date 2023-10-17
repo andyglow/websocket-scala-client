@@ -2,8 +2,8 @@ package com.github.andyglow.websocket.testserver
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, UpgradeToWebSocket}
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, UpgradeToWebSocket, WebSocketUpgrade}
+import akka.http.scaladsl.model.{AttributeKeys, HttpRequest, HttpResponse}
 import akka.stream._
 import akka.stream.scaladsl.{Flow, Sink}
 
@@ -25,7 +25,7 @@ object TestServer extends CrossScalaVersionAkkaApi {
 
     val requestHandler: HttpRequest => HttpResponse = {
       (req: HttpRequest) =>
-        req.header[UpgradeToWebSocket] match {
+        req.attribute(AttributeKeys.webSocketUpgrade) match {
           case Some(upgrade) => upgrade handleMessages service
           case None          => HttpResponse(400, entity = "Not a valid websocket request!")
         }

@@ -3,7 +3,7 @@ import com.github.andyglow.websocket._
 object TextEchoWebSocketOrg extends WaitForStop[String] {
 
   val protocolHandler = new WebsocketHandler[String]() {
-    def receive = {
+    def onMessage = {
       case str if str startsWith "repeat " =>
         sender() ! "repeating " + str.substring(7)
         logger.info(s"<<| $str")

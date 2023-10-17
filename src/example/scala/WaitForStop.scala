@@ -1,4 +1,4 @@
-import com.github.andyglow.websocket.util.Uri
+import com.github.andyglow.websocket.util.ServerAddressBuilder
 import com.github.andyglow.websocket.{Websocket, WebsocketClient}
 import org.slf4j.LoggerFactory
 
@@ -10,8 +10,8 @@ import scala.util.{Failure, Success}
 trait WaitForStop[T] {
 
   val host = "localhost:8080"
-  val binaryUri = Uri(s"ws://$host/?encoding=binary")
-  val stringUri = Uri(s"ws://$host")
+  val binaryUri = ServerAddressBuilder(s"ws://$host/?encoding=binary")
+  val stringUri = ServerAddressBuilder(s"ws://$host")
 
   val logger = LoggerFactory.getLogger("echo-websocket-example")
 
@@ -38,5 +38,4 @@ trait WaitForStop[T] {
 
     Await.result(f, 5000.millis)
   }
-
 }

@@ -6,7 +6,7 @@ import com.github.andyglow.websocket._
 object BinaryEchoWebSocketOrg extends WaitForStop[ByteBuf] {
 
   val protocolHandler = new WebsocketHandler[ByteBuf]() {
-    def receive = {
+    def onMessage = {
       case bin if bin.toString(Charset.defaultCharset()) == "close" =>
         logger.info(s"<<! ${bin.toString(Charset.defaultCharset())}")
         done()

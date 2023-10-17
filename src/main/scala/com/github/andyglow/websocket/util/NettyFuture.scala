@@ -1,10 +1,12 @@
 package com.github.andyglow.websocket.util
 
-import io.netty.util.concurrent.{GenericFutureListener, Future => NFuture}
+import io.netty.util.concurrent.{Future => NFuture}
+import io.netty.util.concurrent.GenericFutureListener
+import scala.concurrent.Future
+import scala.concurrent.Promise
 
-import scala.concurrent.{Future, Promise}
-
-
+/** Translates Netty's Futures into Scala ones.
+  */
 object NettyFuture {
 
   def apply[T](f: NFuture[T]): Future[T] = {

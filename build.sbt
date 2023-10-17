@@ -1,10 +1,12 @@
-import sbt._
-import sbt.Keys._
-import sbt.Defaults._
-import xerial.sbt.Sonatype._
-import ReleaseTransformations._
-import Dependencies._
-import ScalaVer._
+import sbt.*
+import sbt.Keys.*
+import sbt.Defaults.*
+import xerial.sbt.Sonatype.*
+import ReleaseTransformations.*
+import Dependencies.*
+import ScalaVer.*
+
+import java.net.URL
 
 
 // https://github.com/xerial/sbt-sonatype/issues/71
@@ -69,7 +71,10 @@ lazy val commons = ScalaVer.settings ++ Seq(
         ReleaseStep(action = Command.process("sonatypeReleaseAll", _), enableCrossBuild = true),
         pushChanges),
 
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.17" % Test
+    libraryDependencies ++= Seq(
+        "org.scalatest" %% "scalatest" % "3.2.17" % Test,
+        "org.mockito" % "mockito-core" % "5.6.0" % Test
+    )
 )
 
 resolvers ++= Seq("snapshots", "releases").flatMap(Resolver.sonatypeOssRepos)
