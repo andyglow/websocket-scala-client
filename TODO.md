@@ -1,2 +1,3 @@
 # TODO
-- [ ] add tests
+- [x] add tests
+- [ ] add more tests
