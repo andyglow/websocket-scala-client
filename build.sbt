@@ -1,3 +1,4 @@
+import CustomGithubActions.{aggregateCC, generateCC, uploadCC}
 import sbt.*
 import sbt.Keys.*
 import sbt.Defaults.*
@@ -5,12 +6,18 @@ import xerial.sbt.Sonatype.*
 import ReleaseTransformations.*
 import Dependencies.*
 import ScalaVer.*
+import CustomGithubActions.*
 
 import java.net.URL
 
 
 // https://github.com/xerial/sbt-sonatype/issues/71
 ThisBuild / publishTo  := sonatypePublishTo.value
+ThisBuild / githubWorkflowTargetPaths           := Paths.Ignore(List("**.md"))
+ThisBuild / githubWorkflowScalaVersions         := ScalaVer.values.map(_.full)
+ThisBuild / githubWorkflowPublishTargetBranches := Seq()
+ThisBuild / githubWorkflowJavaVersions          := Seq(JavaSpec.temurin("11"))
+ThisBuild / githubWorkflowBuildPostamble        := Seq(generateCC, aggregateCC, uploadCC)
 
 lazy val commons = ScalaVer.settings ++ Seq(
 
