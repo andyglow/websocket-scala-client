@@ -7,7 +7,7 @@ import akka.stream._
 import akka.stream.scaladsl.Flow
 
 
-object TestServer extends CrossScalaVersionAkkaApi {
+object TestServer extends PlatformDependent {
 
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem()
