@@ -1,14 +1,14 @@
 package com.github.andyglow.websocket
 
-import io.netty.buffer.{ByteBuf, ByteBufHolder, Unpooled}
+import io.netty.buffer.{ByteBufHolder, Unpooled}
 import io.netty.channel.{Channel, ChannelFuture}
 import io.netty.handler.codec.http.websocketx.{BinaryWebSocketFrame, CloseWebSocketFrame, PingWebSocketFrame, TextWebSocketFrame}
-import org.scalatest.funsuite.AnyFunSuite
 import org.mockito.Mockito._
 import org.scalactic.source.Position
+import org.scalatest.funsuite.AnyFunSuite
 
 import java.nio.{ByteBuffer, CharBuffer}
-import java.util.concurrent.{ExecutorService, Executors}
+import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext
 
 class WebsocketSpec extends AnyFunSuite {
@@ -41,7 +41,7 @@ class WebsocketSpec extends AnyFunSuite {
     )
   }
 
-  private def examine(wsRun: Websocket => Unit, verifyRun: Channel => Unit)(implicit pos: Position): Unit = {
+  private def examine(wsRun: Websocket => Any, verifyRun: Channel => Any)(implicit pos: Position): Unit = {
     val ch = mock(classOf[Channel])
     val closeFut = mock(classOf[ChannelFuture])
     when(ch.closeFuture()).thenReturn(closeFut)
@@ -50,6 +50,7 @@ class WebsocketSpec extends AnyFunSuite {
     wsRun(ws)
     try {
       verifyRun(ch)
+      ()
     } catch {
       case th: Throwable => fail(th)
     }

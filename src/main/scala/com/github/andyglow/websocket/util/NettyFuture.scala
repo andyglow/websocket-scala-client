@@ -10,13 +10,14 @@ import scala.concurrent.Promise
 object NettyFuture {
 
   def apply[T](f: NFuture[T]): Future[T] = {
-    val p = Promise[T]()
-    val l = new GenericFutureListener[NFuture[T]]() {
+    val promise = Promise[T]()
+    val futureListener = new GenericFutureListener[NFuture[T]]() {
       override def operationComplete(future: NFuture[T]): Unit = {
-        if (future.isSuccess) p.success(future.getNow) else p.failure(future.cause())
+        if (future.isSuccess) promise.success(future.getNow) else promise.failure(future.cause())
+        ()
       }
     }
-    f addListener l
-    p.future
+    f.addListener(futureListener)
+    promise.future
   }
 }

@@ -52,15 +52,19 @@ trait Websocket {
   */
 private[websocket] class WebsocketImpl(ch: Channel) extends Websocket {
 
-  override def ![T: MessageAdapter](msg: T): Unit =
-    ch writeAndFlush { MessageAdapter[T] format msg }
-
-  override def close()(implicit ec: ExecutionContext): Future[Unit] = {
-    ch writeAndFlush new CloseWebSocketFrame
-    val f = NettyFuture(ch.closeFuture())
-    f map { _ => () }
+  override def ![T: MessageAdapter](msg: T): Unit = {
+    ch.writeAndFlush(MessageAdapter[T].format(msg))
+    ()
   }
 
-  override def ping()(implicit ec: ExecutionContext): Unit =
+  override def close()(implicit ec: ExecutionContext): Future[Unit] = {
+    ch.writeAndFlush(new CloseWebSocketFrame)
+    val f = NettyFuture(ch.closeFuture())
+    f.map { _ => () }
+  }
+
+  override def ping()(implicit ec: ExecutionContext): Unit = {
     ch.writeAndFlush(new PingWebSocketFrame())
+    ()
+  }
 }

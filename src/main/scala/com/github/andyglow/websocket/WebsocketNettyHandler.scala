@@ -1,14 +1,12 @@
 package com.github.andyglow.websocket
 
 import io.netty.buffer.ByteBufHolder
-import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.handler.codec.http.FullHttpResponse
 import io.netty.handler.codec.http.websocketx._
 import io.netty.util.CharsetUtil
-import scala.annotation.nowarn
 import scala.concurrent.stm._
 import scala.util.control.NonFatal
 
@@ -61,15 +59,18 @@ private[websocket] class WebsocketNettyHandler[T](
 
   override def channelActive(ctx: ChannelHandlerContext): Unit = {
     handshaker.handshake(ctx.channel())
+    ()
   }
 
   override def channelRead0(ctx: ChannelHandlerContext, msg: ByteBufHolder): Unit = {
     val ch = ctx.channel()
-    def controls: PartialFunction[ByteBufHolder, ChannelFuture] = {
+    def controls: PartialFunction[ByteBufHolder, Unit] = {
       case _: CloseWebSocketFrame =>
         try { handler.onClose(()) }
         catch { case NonFatal(ex) => handler.reportFailure(ex) }
         ch.close()
+        ()
+
       case msg: FullHttpResponse =>
         if (!handshaker.isHandshakeComplete) {
           try {
@@ -81,6 +82,7 @@ private[websocket] class WebsocketNettyHandler[T](
             case ex: WebSocketHandshakeException =>
               atomic { implicit txn => handshakeFuture().setFailure(ex) }
           }
+          ()
         } else {
           throw new IllegalStateException(
             s"Unexpected FullHttpResponse (status=${msg.status}, content=${msg.content().toString(CharsetUtil.UTF_8)})"
@@ -92,7 +94,6 @@ private[websocket] class WebsocketNettyHandler[T](
   }
 
   @Override
-  @nowarn
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
     ctx.close()
     atomic { implicit txn =>
@@ -100,5 +101,7 @@ private[websocket] class WebsocketNettyHandler[T](
       if (!f.isDone) f.setFailure(cause)
       else handler.reportFailure(cause)
     }
+
+    ()
   }
 }

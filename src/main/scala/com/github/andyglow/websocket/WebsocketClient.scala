@@ -90,6 +90,8 @@ class WebsocketClient[T: MessageAdapter] private (
           new websocketx.WebSocketFrameAggregator(Int.MaxValue),
           nettyHandler
         )
+
+        ()
       }
     }
 
@@ -114,7 +116,10 @@ class WebsocketClient[T: MessageAdapter] private (
 
   /** Runs though shutdown process synchronously
     */
-  def shutdownSync(): Unit = shutdown().syncUninterruptibly()
+  def shutdownSync(): Unit = {
+    shutdown().syncUninterruptibly()
+    ()
+  }
 
   /** Executes shutdown returning Future that is going to be resolved once shutdown process is completed or if error has
     * happened.
