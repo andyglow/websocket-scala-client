@@ -1,12 +1,13 @@
 package com.github.andyglow.websocket
 
-import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.handler.codec.http.websocketx.{BinaryWebSocketFrame, TextWebSocketFrame}
-import org.scalatest.matchers.should.Matchers._
-import org.scalatest.OptionValues._
-import org.scalatest.wordspec.AnyWordSpec
-
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame
 import java.nio.CharBuffer
+import org.scalatest.OptionValues._
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 
 class MessageAdapterSpec extends AnyWordSpec {
 
@@ -28,13 +29,21 @@ class MessageAdapterSpec extends AnyWordSpec {
     }
 
     "support byte arrays" in {
-      MessageAdapter[Array[Byte]].format("foo".getBytes) shouldEqual new BinaryWebSocketFrame(Unpooled.wrappedBuffer("foo".getBytes))
-      MessageAdapter[Array[Byte]].parse(new BinaryWebSocketFrame(Unpooled.wrappedBuffer("foo".getBytes))).value shouldEqual "foo".getBytes
+      MessageAdapter[Array[Byte]].format("foo".getBytes) shouldEqual new BinaryWebSocketFrame(
+        Unpooled.wrappedBuffer("foo".getBytes)
+      )
+      MessageAdapter[Array[Byte]]
+        .parse(new BinaryWebSocketFrame(Unpooled.wrappedBuffer("foo".getBytes)))
+        .value shouldEqual "foo".getBytes
     }
 
     "support byte buf" in {
-      MessageAdapter[ByteBuf].format(Unpooled.wrappedBuffer("foo".getBytes)) shouldEqual new BinaryWebSocketFrame(Unpooled.wrappedBuffer("foo".getBytes))
-      MessageAdapter[ByteBuf].parse(new BinaryWebSocketFrame(Unpooled.wrappedBuffer("foo".getBytes))).value shouldEqual Unpooled.wrappedBuffer("foo".getBytes)
+      MessageAdapter[ByteBuf].format(Unpooled.wrappedBuffer("foo".getBytes)) shouldEqual new BinaryWebSocketFrame(
+        Unpooled.wrappedBuffer("foo".getBytes)
+      )
+      MessageAdapter[ByteBuf]
+        .parse(new BinaryWebSocketFrame(Unpooled.wrappedBuffer("foo".getBytes)))
+        .value shouldEqual Unpooled.wrappedBuffer("foo".getBytes)
     }
   }
 }

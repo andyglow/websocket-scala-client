@@ -1,7 +1,9 @@
-import java.nio.charset.Charset
-import com.github.andyglow.websocket.{WebsocketHandler, WebsocketClient}
-import io.netty.buffer.{Unpooled, ByteBuf}
 import com.github.andyglow.websocket._
+import com.github.andyglow.websocket.WebsocketClient
+import com.github.andyglow.websocket.WebsocketHandler
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import java.nio.charset.Charset
 
 object BinaryEchoWebSocketOrg extends WaitForStop[ByteBuf] {
 
