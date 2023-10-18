@@ -1,4 +1,4 @@
-import sbt._
+import sbt.*
 
 object Dependencies {
   lazy val Examples = config("example") extend Compile
@@ -14,10 +14,10 @@ object Dependencies {
 
   object akkaHttp {
 
-    def apply(scalaVer: ScalaVer) = {
-      val v = scalaVer match {
-        case ScalaVer._211 => "10.1.9"
-        case _             => "10.2.6"
+    def apply(scalaVer: String): ModuleID = {
+      val v = ScalaVer.fromString(scalaVer) match {
+        case Some(ScalaVer._211) => "10.1.9"
+        case _                   => "10.5.3"
 
       }
 
@@ -26,10 +26,10 @@ object Dependencies {
   }
 
   object akkaStream {
-    def apply(scalaVer: ScalaVer) = {
-      val v = scalaVer match {
-        case ScalaVer._211 => "2.5.32"
-        case _             => "2.6.16"
+    def apply(scalaVer: String): ModuleID = {
+      val v = ScalaVer.fromString(scalaVer) match {
+        case Some(ScalaVer._211) => "2.5.32"
+        case _                   => "2.8.5"
       }
 
       "com.typesafe.akka" %% "akka-stream" % v % Test

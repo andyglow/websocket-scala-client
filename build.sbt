@@ -100,6 +100,6 @@ lazy val root = (project in file("."))
           scalaStm,
           slf4jApi,
           slf4jSimple,
-          akkaHttp(scalaV.value).cross(CrossVersion.for3Use2_13),
-          akkaStream(scalaV.value).cross(CrossVersion.for3Use2_13)))
+          akkaHttp(scalaVersion.value).cross(CrossVersion.binary),
+          akkaStream(scalaVersion.value).cross(CrossVersion.binary)))
 
