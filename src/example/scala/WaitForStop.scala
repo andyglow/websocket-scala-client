@@ -1,15 +1,16 @@
+import com.github.andyglow.websocket.Websocket
+import com.github.andyglow.websocket.WebsocketClient
 import com.github.andyglow.websocket.util.ServerAddressBuilder
-import com.github.andyglow.websocket.{Websocket, WebsocketClient}
 import org.slf4j.LoggerFactory
-
 import scala.concurrent._
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
+import scala.concurrent.duration._
+import scala.util.Failure
+import scala.util.Success
 
 trait WaitForStop[T] {
 
-  val host = "localhost:8080"
+  val host      = "localhost:8080"
   val binaryUri = ServerAddressBuilder(s"ws://$host/?encoding=binary")
   val stringUri = ServerAddressBuilder(s"ws://$host")
 
@@ -23,8 +24,8 @@ trait WaitForStop[T] {
   def run(): Unit
 
   def done(): Unit = {
-    socket.close andThen {
-      case _ => roundtrip.success(())
+    socket.close andThen { case _ =>
+      roundtrip.success(())
     }
   }
 

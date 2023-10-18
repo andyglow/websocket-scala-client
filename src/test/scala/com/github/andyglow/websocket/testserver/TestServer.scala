@@ -1,16 +1,18 @@
 package com.github.andyglow.websocket.testserver
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.ws.BinaryMessage
+import akka.http.scaladsl.model.ws.Message
+import akka.http.scaladsl.model.ws.TextMessage
 import akka.stream._
 import akka.stream.scaladsl.Flow
-
 
 object TestServer extends PlatformDependent {
 
   def main(args: Array[String]): Unit = {
-    implicit val system: ActorSystem = ActorSystem()
+    implicit val system: ActorSystem        = ActorSystem()
     implicit val materializer: Materializer = SystemMaterializer(system).materializer
 
     val service = Flow[Message]
@@ -22,12 +24,11 @@ object TestServer extends PlatformDependent {
         case bm: BinaryMessage => BinaryMessage(bm.dataStream) :: Nil
       }
 
-    val requestHandler: HttpRequest => HttpResponse = {
-      (req: HttpRequest) =>
-        websocketAttribution(req) match {
-          case Some(upgrade) => upgrade handleMessages service
-          case None          => HttpResponse(400, entity = "Not a valid websocket request!")
-        }
+    val requestHandler: HttpRequest => HttpResponse = { (req: HttpRequest) =>
+      websocketAttribution(req) match {
+        case Some(upgrade) => upgrade handleMessages service
+        case None          => HttpResponse(400, entity = "Not a valid websocket request!")
+      }
     }
 
     val bindingFuture =
@@ -38,8 +39,7 @@ object TestServer extends PlatformDependent {
 
     import system.dispatcher // for the future transformations
     bindingFuture
-      .flatMap(_.unbind()) // trigger unbinding from the port
+      .flatMap(_.unbind())                 // trigger unbinding from the port
       .onComplete(_ => system.terminate()) // and shutdown when done
   }
 }
-

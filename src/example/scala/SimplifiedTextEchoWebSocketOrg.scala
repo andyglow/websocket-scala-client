@@ -4,10 +4,10 @@ object SimplifiedTextEchoWebSocketOrg extends WaitForStop[String] {
 
   val client = {
     val builder = WebsocketClient.Builder[String](stringUri) {
-      case "stop"         => logger.info(s"<<! stop"); done()
-      case str            => logger.info(s"<<| $str")
-    } onFailure {
-      case ex: Throwable  => logger.error(s"Error occurred.", ex)
+      case "stop" => logger.info(s"<<! stop"); done()
+      case str    => logger.info(s"<<| $str")
+    } onFailure { case ex: Throwable =>
+      logger.error(s"Error occurred.", ex)
     } onClose {
       logger.info(s"<<! connection closed"); done()
     }

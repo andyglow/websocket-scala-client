@@ -1,6 +1,8 @@
-import sbt.Keys.{crossScalaVersions, scalaVersion}
+import sbt.Def
+import sbt.Keys.crossScalaVersions
+import sbt.Keys.scalaVersion
 import sbt.librarymanagement.CrossVersion
-import sbt.{Def, settingKey}
+import sbt.settingKey
 
 sealed abstract class ScalaVer(val full: String)
 
@@ -31,7 +33,8 @@ object ScalaVer {
   lazy val scalaV = settingKey[ScalaVer]("Current Scala Version")
 
   def settings: Seq[Def.Setting[? >: String & Seq[String] & ScalaVer <: Object]] = Seq(
-    scalaVersion        := (ScalaVer.fromEnv getOrElse ScalaVer.default).full,
-    crossScalaVersions  := ScalaVer.values.map(_.full),
-    scalaV              := ScalaVer.fromString(scalaVersion.value) getOrElse ScalaVer.default)
+    scalaVersion       := (ScalaVer.fromEnv getOrElse ScalaVer.default).full,
+    crossScalaVersions := ScalaVer.values.map(_.full),
+    scalaV             := ScalaVer.fromString(scalaVersion.value) getOrElse ScalaVer.default
+  )
 }

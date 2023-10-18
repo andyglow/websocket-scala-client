@@ -1,4 +1,5 @@
-import sbtghactions.GenerativePlugin.autoImport.{UseRef, WorkflowStep}
+import sbtghactions.GenerativePlugin.autoImport.UseRef
+import sbtghactions.GenerativePlugin.autoImport.WorkflowStep
 
 object CustomGithubActions {
 

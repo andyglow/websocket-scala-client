@@ -1,11 +1,6 @@
 object CompilerOptions {
 
-  private val base = Seq(
-    "-encoding", "UTF-8",
-    "-feature",
-    "-unchecked",
-    "-deprecation",
-    "-language:higherKinds")
+  private val base = Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-deprecation", "-language:higherKinds")
 
   private val opts211 = base ++ Seq(
     "-Xfuture",
