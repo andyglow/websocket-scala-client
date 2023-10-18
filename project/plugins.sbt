@@ -10,6 +10,6 @@ addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.1")
 
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.11")
 
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
 
 addSbtPlugin("com.github.sbt" % "sbt-github-actions" % "0.18.0")
