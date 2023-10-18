@@ -6,9 +6,10 @@ import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.Materializer
 
+import java.util.concurrent.Callable
 import scala.concurrent.Future
 
-trait CrossScalaVersionAkkaApi {
+trait PlatformDependent {
 
   @inline def launchServer(
     interface: String,
@@ -19,4 +20,11 @@ trait CrossScalaVersionAkkaApi {
   }
 
   @inline def websocketAttribution(x: HttpRequest): Option[UpgradeToWebSocket] = x.header[UpgradeToWebSocket]
+}
+
+object PlatformDependent {
+
+  @inline def callable[T](fn: () => T): Callable[T] = new Callable[T] {
+    def call(): T = fn()
+  }
 }
