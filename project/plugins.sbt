@@ -12,4 +12,4 @@ addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.11")
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
 
-addSbtPlugin("com.github.sbt" % "sbt-github-actions" % "0.18.0")
+addSbtPlugin("com.github.sbt" % "sbt-github-actions" % "0.19.0")
