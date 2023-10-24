@@ -7,8 +7,7 @@ import akka.http.scaladsl.{ConnectionContext, Http}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws
 import akka.http.scaladsl.model.ws.Message
-import akka.stream.CompletionStrategy
-import akka.stream.OverflowStrategy
+import akka.stream.{CompletionStrategy, Materializer, OverflowStrategy}
 import akka.stream.scaladsl.Keep
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
@@ -20,6 +19,7 @@ trait AkkaClient extends AkkaImplicits { this: AkkaPlatform =>
 
   class PekkoClient(address: ServerAddress, options: Options) extends WebsocketClient {
     implicit val system: ActorSystem = ActorSystem()
+    implicit lazy val ic: InternalContext = AkkaInternalContext(options, Materializer(system))
 
     override def open(handler: WebsocketHandler): Websocket = new Websocket {
 

@@ -10,22 +10,25 @@ import scala.concurrent.Await
 
 trait PekkoImplicits { this: PekkoPlatform =>
 
-  class PekkoImplicits(options: PekkoOptions)(implicit val mat: Materializer)
+  class PekkoImplicits
       extends MessageAdapter.Implicits
       with Implicits {
-    import mat.executionContext
 
     private class TextAdapter[T](
       toString: T => String,
       fromString: String => T
     ) extends MessageAdapter[T] {
       override type F = Text
-      override def toMessage(msg: T): F = ws.TextMessage(toString(msg))
-      override def fromMessage(msg: F): T =
+      override def toMessage(msg: T)(implicit ic: InternalContext): F = ws.TextMessage(toString(msg))
+      override def fromMessage(msg: F)(implicit ic: InternalContext): T = {
+        import ic._
+        import mat.executionContext
+
         Await.result(
           msg.toStrict(options.readStreamedMessageTimeout)(mat).map(_.text).map(fromString),
           options.resolveTimeout
         )
+      }
     }
 
     private class BinaryAdapter[T](
@@ -33,12 +36,16 @@ trait PekkoImplicits { this: PekkoPlatform =>
       fromByteString: ByteString => T
     ) extends MessageAdapter[T] {
       override type F = Binary
-      override def toMessage(msg: T): F = ws.BinaryMessage(toByteString(msg))
-      override def fromMessage(msg: F): T =
+      override def toMessage(msg: T)(implicit ic: InternalContext): F = ws.BinaryMessage(toByteString(msg))
+      override def fromMessage(msg: F)(implicit ic: InternalContext): T = {
+        import ic._
+        import mat.executionContext
+
         Await.result(
           msg.toStrict(options.readStreamedMessageTimeout)(mat).map(_.data).map(fromByteString),
           options.resolveTimeout
         )
+      }
     }
 
     override implicit val StringMessageAdapter: MessageAdapter.Aux[String, Text] =

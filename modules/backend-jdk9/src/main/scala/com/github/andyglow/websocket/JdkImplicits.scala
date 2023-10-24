@@ -9,8 +9,8 @@ trait JdkImplicits { this: JdkPlatform =>
 
     private class TextAdapter[T <: CharSequence](ff: Text => T) extends MessageAdapter[T] {
       override type F = Text
-      override def toMessage(msg: T): F   = msg
-      override def fromMessage(msg: F): T = ff(msg)
+      override def toMessage(msg: T)(implicit ic: InternalContext): F   = msg
+      override def fromMessage(msg: F)(implicit ic: InternalContext): T = ff(msg)
     }
 
     override implicit val StringMessageAdapter: MessageAdapter.Aux[String, Text] =
@@ -21,20 +21,20 @@ trait JdkImplicits { this: JdkPlatform =>
 
     implicit val CharArrayMessageAdapter: MessageAdapter.Aux[Array[Char], Text] = new MessageAdapter[Array[Char]] {
       override type F = Text
-      override def toMessage(msg: Array[Char]): F      = CharBuffer.wrap(msg)
-      override def fromMessage(msg: Text): Array[Char] = msg.toString.toCharArray
+      override def toMessage(msg: Array[Char])(implicit ic: InternalContext): F      = CharBuffer.wrap(msg)
+      override def fromMessage(msg: Text)(implicit ic: InternalContext): Array[Char] = msg.toString.toCharArray
     }
 
     implicit val ByteBufferMessageAdapter: MessageAdapter.Aux[ByteBuffer, Binary] = new MessageAdapter[ByteBuffer] {
       override type F = Binary
-      override def toMessage(msg: ByteBuffer): F        = msg
-      override def fromMessage(msg: Binary): ByteBuffer = msg
+      override def toMessage(msg: ByteBuffer)(implicit ic: InternalContext): F        = msg
+      override def fromMessage(msg: Binary)(implicit ic: InternalContext): ByteBuffer = msg
     }
 
     implicit val ByteArrayMessageAdapter: MessageAdapter.Aux[Array[Byte], Binary] = new MessageAdapter[Array[Byte]] {
       override type F = Binary
-      override def toMessage(msg: Array[Byte]): F        = ByteBuffer.wrap(msg)
-      override def fromMessage(msg: Binary): Array[Byte] = msg.toByteArray
+      override def toMessage(msg: Array[Byte])(implicit ic: InternalContext): F        = ByteBuffer.wrap(msg)
+      override def fromMessage(msg: Binary)(implicit ic: InternalContext): Array[Byte] = msg.toByteArray
     }
   }
 

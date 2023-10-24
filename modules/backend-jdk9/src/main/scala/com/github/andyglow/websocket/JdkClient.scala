@@ -46,7 +46,7 @@ trait JdkClient { this: JdkPlatform =>
     options: Options
   ) extends WebsocketClient {
 
-    override lazy val implicits = new JdkImplcits with Implicits
+    override implicit val ic: InternalContext = JdkInternalContext
 
     override def open(handler: WebsocketHandler): Websocket = {
       val httpBuilder = HttpClient.newBuilder()

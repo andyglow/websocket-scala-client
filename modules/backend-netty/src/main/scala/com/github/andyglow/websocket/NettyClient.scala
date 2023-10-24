@@ -129,7 +129,7 @@ trait NettyClient { this: NettyPlatform =>
   ) extends WebsocketClient {
     import options._
 
-    override lazy val implicits = new NettyImplicits with Implicits
+    override implicit val ic: InternalContext = NettyInternalContext
 
     private lazy val loopGroup = new NioEventLoopGroup()
 

@@ -18,6 +18,12 @@ trait Platform {
   final type OnMessage          = PartialFunction[MessageType, Unit]
   final type OnUnhandledMessage = Function[MessageType, Unit]
 
+  /**
+   * This is needed for some platforms to perform effect resolutions.
+   * In Akka/Pekko it contains a materializer which is used to `msg.toStrict`
+   */
+  type InternalContext
+
   /** A Message Adapter aimed to be used to convert types to messages and vice versa.
     *
     * TODO: We should think about pluggable system that'd allow usage of serdes like Circe, SprayJson, PlayJson, etc
@@ -25,13 +31,19 @@ trait Platform {
     * @tparam T
     *   use type
     */
-  trait MessageAdapter[T] {
+  trait MessageAdapter[T] { self =>
     type F <: MessageType
-    def toMessage(x: T): F
+    def toMessage(x: T)(implicit ic: InternalContext): F
     // NOTE: some frameworks use effectful api instead of sync.
     //       in `akka/pekko` we need to resolve Future. Might be
     //       a good idea to allow pluggable effect systems at this level
-    def fromMessage(x: F): T
+    def fromMessage(x: F)(implicit ic: InternalContext): T
+
+    def mapRight[TT](to: TT => T, from: T => TT): MessageAdapter[TT] = new MessageAdapter[TT] {
+      override type F = self.F
+      override def toMessage(x: TT)(implicit ic: InternalContext): F = self.toMessage(to(x))
+      override def fromMessage(x: F)(implicit ic: InternalContext): TT = from(self.fromMessage(x))
+    }
   }
 
   object MessageAdapter {
@@ -72,6 +84,8 @@ trait Platform {
     implicit def websocketHandlerFromWebsocketHandlerBuilder(builder: WebsocketHandler.Builder): WebsocketHandler =
       builder.build()
   }
+
+  val implicits: MessageAdapter.Implicits with Implicits
 
   /** Most common options shared by all the platforms
     */
@@ -182,7 +196,7 @@ trait Platform {
     def open(handler: WebsocketHandler): Websocket
     def shutdownSync(): Unit
     def shutdownAsync(implicit ec: ExecutionContext): Future[Unit]
-    val implicits: MessageAdapter.Implicits with Implicits
+    implicit val ic: InternalContext
 
     object M {
       object String {
@@ -210,7 +224,7 @@ trait Platform {
 
   trait Websocket {
     protected def send(x: MessageType): Unit
-    final def send[T](x: T)(implicit bridge: MessageAdapter[T]): Unit = send(bridge.toMessage(x))
+    final def send[T](x: T)(implicit bridge: MessageAdapter[T], ic: InternalContext): Unit = send(bridge.toMessage(x))
     def ping(): Unit
     def close()(implicit ec: ExecutionContext): Future[Unit]
   }

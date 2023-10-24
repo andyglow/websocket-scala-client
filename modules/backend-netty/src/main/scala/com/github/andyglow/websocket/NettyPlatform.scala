@@ -7,10 +7,13 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame
 import scala.concurrent.duration._
 
 class NettyPlatform extends Platform with NettyImplicits with NettyClient {
-  override type MessageType = WebSocketFrame
-  override type Binary      = BinaryWebSocketFrame
-  override type Text        = TextWebSocketFrame
-  override type Pong        = PongWebSocketFrame
+  override type MessageType     = WebSocketFrame
+  override type Binary          = BinaryWebSocketFrame
+  override type Text            = TextWebSocketFrame
+  override type Pong            = PongWebSocketFrame
+  override type InternalContext = NettyInternalContext.type
+  object NettyInternalContext
+  override lazy val implicits = new NettyImplicits with Implicits
 
   case class NettyOptions(
     override val headers: Map[String, String] = Map.empty,

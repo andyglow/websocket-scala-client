@@ -10,63 +10,70 @@ import scala.concurrent.Await
 
 trait AkkaImplicits { this: AkkaPlatform =>
 
-  class PekkoImplicits(options: AkkaOptions)(implicit val mat: Materializer)
+  class PekkoImplicits
       extends MessageAdapter.Implicits
       with Implicits {
-    import mat.executionContext
 
-    private class TextBridge[T](
+    private class TextAdapter[T](
       toString: T => String,
       fromString: String => T
     ) extends MessageAdapter[T] {
       override type F = Text
-      override def toMessage(msg: T): F = ws.TextMessage(toString(msg))
-      override def fromMessage(msg: F): T =
+      override def toMessage(msg: T)(implicit ic: InternalContext): F = ws.TextMessage(toString(msg))
+      override def fromMessage(msg: F)(implicit ic: InternalContext): T = {
+        import ic._
+        import mat.executionContext
+
         Await.result(
           msg.toStrict(options.readStreamedMessageTimeout)(mat).map(_.text).map(fromString),
           options.resolveTimeout
         )
+      }
     }
 
-    private class BinaryBridge[T](
+    private class BinaryAdapter[T](
       toByteString: T => ByteString,
       fromByteString: ByteString => T
     ) extends MessageAdapter[T] {
       override type F = Binary
-      override def toMessage(msg: T): F = ws.BinaryMessage(toByteString(msg))
-      override def fromMessage(msg: F): T =
+      override def toMessage(msg: T)(implicit ic: InternalContext): F = ws.BinaryMessage(toByteString(msg))
+      override def fromMessage(msg: F)(implicit ic: InternalContext): T = {
+        import ic._
+        import mat.executionContext
+
         Await.result(
           msg.toStrict(options.readStreamedMessageTimeout)(mat).map(_.data).map(fromByteString),
           options.resolveTimeout
         )
+      }
     }
 
     override implicit val StringMessageAdapter: MessageAdapter.Aux[String, Text] =
-      new TextBridge(
+      new TextAdapter(
         toString = identity,
         fromString = identity
       )
 
     override implicit val CharBufferMessageAdapter: MessageAdapter.Aux[CharBuffer, Text] =
-      new TextBridge(
+      new TextAdapter(
         toString = _.toString,
         fromString = CharBuffer.wrap
       )
 
     override implicit val CharArrayMessageAdapter: MessageAdapter.Aux[Array[Char], Text] =
-      new TextBridge(
+      new TextAdapter(
         toString = new String(_),
         fromString = _.toCharArray
       )
 
     implicit val ByteBufferMessageAdapter: MessageAdapter.Aux[ByteBuffer, Binary] =
-      new BinaryBridge(
+      new BinaryAdapter(
         toByteString = ByteString.apply,
         fromByteString = _.asByteBuffer
       )
 
     implicit val ByteArrayMessageAdapter: MessageAdapter.Aux[Array[Byte], BinaryMessage] =
-      new BinaryBridge(
+      new BinaryAdapter(
         toByteString = ByteString.apply,
         fromByteString = _.asByteBuffer.toByteArray
       )

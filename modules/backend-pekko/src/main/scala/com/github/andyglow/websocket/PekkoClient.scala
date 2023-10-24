@@ -8,11 +8,11 @@ import org.apache.pekko.http.scaladsl.Http
 import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.apache.pekko.http.scaladsl.model.ws
 import org.apache.pekko.http.scaladsl.model.ws.Message
-import org.apache.pekko.stream.CompletionStrategy
-import org.apache.pekko.stream.OverflowStrategy
+import org.apache.pekko.stream.{CompletionStrategy, Materializer, OverflowStrategy}
 import org.apache.pekko.stream.scaladsl.Keep
 import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
@@ -20,6 +20,8 @@ trait PekkoClient extends PekkoImplicits { this: PekkoPlatform =>
 
   class PekkoClient(address: ServerAddress, options: Options) extends WebsocketClient {
     implicit val system: ActorSystem = ActorSystem()
+
+    implicit lazy val ic: InternalContext = PekkoInternalContext(options, Materializer(system))
 
     override def open(handler: WebsocketHandler): Websocket = new Websocket {
 
@@ -82,7 +84,5 @@ trait PekkoClient extends PekkoImplicits { this: PekkoPlatform =>
     override def shutdownAsync(implicit ec: ExecutionContext): Future[Unit] = {
       system.terminate() map { _ => () }
     }
-
-    override lazy val implicits: MessageAdapter.Implicits with Implicits = new PekkoImplicits(options)
   }
 }

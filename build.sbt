@@ -87,6 +87,15 @@ lazy val commons = ScalaVer.settings ++ Seq(
 
 resolvers ++= Seq("snapshots", "releases").flatMap(Resolver.sonatypeOssRepos)
 
+lazy val excludeFrom211 = Seq(
+  Compile / aggregate := {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 11)) => false // exclude from 2.11 build as there is no 2.11 versions
+      case _             => true
+    }
+  }
+)
+
 lazy val api = (project in file("modules/api"))
   .dependsOn(simpleNettyEchoWebsocketServer % Test)
   .settings(
@@ -127,12 +136,7 @@ lazy val backendPekko = (project in file("modules/backend-pekko"))
       pekkoHttp,
       pekkoStream
     ),
-    Compile / aggregate := {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 11)) => false // exclude from 2.11 build as there is no 2.11 versions
-        case _             => true
-      }
-    }
+    excludeFrom211
   )
 
 lazy val backendJDK9 = (project in file("modules/backend-jdk9"))
@@ -144,6 +148,17 @@ lazy val backendJDK9 = (project in file("modules/backend-jdk9"))
       scalaStm,
       slf4jApi
     )
+  )
+
+lazy val serdeAvro4s = (project in file("modules/serde-avro4s"))
+  .dependsOn(api % "test->test;compile->compile")
+  .settings(
+    commons,
+    name := "websocket-serde-avro4s",
+    libraryDependencies ++= Seq(
+      avro4s(scalaVersion.value)
+    ),
+    excludeFrom211
   )
 
 lazy val simpleNettyEchoWebsocketServer = (project in file("modules/simple-netty-websocket-echo-server"))
@@ -179,13 +194,3 @@ lazy val simpleNettyEchoWebsocketServer = (project in file("modules/simple-netty
 
 lazy val root = (project in file("."))
   .aggregate(api, backendNetty, backendJDK9, backendAkka, backendPekko)
-
-/*
-GET /websocket?encoding=text HTTP/1.1
-Origin: http://localhost
-Connection: Upgrade
-Host: localhost
-Sec-WebSocket-Key: P7Kp2hTLNRPFMGLxPV47eQ==
-Upgrade: websocket
-Sec-WebSocket-Version: 13
- */

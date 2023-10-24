@@ -25,6 +25,19 @@ object Dependencies {
   val pekkoStream = "org.apache.pekko"        %% "pekko-stream"     % pekkoStreamVersion% Compile
 
 
+  object avro4s {
+
+    def apply(scalaVer: String): ModuleID = {
+      val v = CrossVersion.partialVersion(scalaVer) match {
+        case Some((2, _)) => "4.1.1"
+        case _            => "5.0.5" // for scala 3
+
+      }
+
+      "com.sksamuel.avro4s" %% "avro4s-core" % v
+    }
+  }
+
   object akkaHttp {
     def latestOssVersion = "10.2.10"
     def apply(scalaVer: String, oss: Boolean = false): ModuleID = {
