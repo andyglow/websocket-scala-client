@@ -16,7 +16,7 @@ object ScalaVer {
 
   val values: Seq[ScalaVer] = Set(_211, _212, _213, _300).toSeq
 
-  val default: ScalaVer = _211
+  val default: ScalaVer = _213
 
   def fromEnv: Option[ScalaVer] = sys.env.get("SCALA_VER") flatMap fromString
 

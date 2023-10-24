@@ -7,6 +7,7 @@ import ReleaseTransformations.*
 import Dependencies.*
 import ScalaVer.*
 import CustomGithubActions.*
+import sbt.librarymanagement.CrossVersion.PartialVersion
 
 import java.net.URL
 
@@ -86,20 +87,105 @@ lazy val commons = ScalaVer.settings ++ Seq(
 
 resolvers ++= Seq("snapshots", "releases").flatMap(Resolver.sonatypeOssRepos)
 
-lazy val root = (project in file("."))
-  .configs(Examples)
-  .settings(inConfig(Examples)(compileBase ++ compileSettings ++ Seq(
-    run     := Defaults.runTask(Examples / fullClasspath , run / mainClass, run / runner).evaluated,
-    runMain := Defaults.runMainTask(Examples / fullClasspath, run / runner).evaluated)))
+lazy val api = (project in file("modules/api"))
+  .dependsOn(simpleNettyEchoWebsocketServer % Test)
   .settings(
-      commons,
-      name := "websocket-scala-client",
-      libraryDependencies ++= Seq(
-          nettyAll,
-          nettyHttp,
-          scalaStm,
-          slf4jApi,
-          slf4jSimple,
-          akkaHttp(scalaVersion.value).cross(CrossVersion.binary),
-          akkaStream(scalaVersion.value).cross(CrossVersion.binary)))
+    commons,
+    name := "websocket-api"
+  )
 
+lazy val backendNetty = (project in file("modules/backend-netty"))
+  .dependsOn(api % "test->test;compile->compile")
+  .settings(
+    commons,
+    name := "websocket-backend-netty",
+    libraryDependencies ++= Seq(
+      nettyAll,
+      nettyHttp,
+      scalaStm,
+      slf4jApi
+    )
+  )
+
+lazy val backendAkka = (project in file("modules/backend-akka"))
+  .dependsOn(api % "test->test;compile->compile")
+  .settings(
+    commons,
+    name := "websocket-backend-akka",
+    libraryDependencies ++= Seq(
+      akkaHttp(scalaVersion.value).cross(CrossVersion.binary),
+      akkaStream(scalaVersion.value).cross(CrossVersion.binary)
+    )
+  )
+
+lazy val backendPekko = (project in file("modules/backend-pekko"))
+  .dependsOn(api % "test->test;compile->compile")
+  .settings(
+    commons,
+    name := "websocket-backend-pekko",
+    libraryDependencies ++= Seq(
+      pekkoHttp,
+      pekkoStream
+    ),
+    Compile / aggregate := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 11)) => false // exclude from 2.11 build as there is no 2.11 versions
+        case _             => true
+      }
+    }
+  )
+
+lazy val backendJDK9 = (project in file("modules/backend-jdk9"))
+  .dependsOn(api % "test->test;compile->compile")
+  .settings(
+    commons,
+    name := "websocket-backend-jdk9",
+    libraryDependencies ++= Seq(
+      scalaStm,
+      slf4jApi
+    )
+  )
+
+lazy val simpleNettyEchoWebsocketServer = (project in file("modules/simple-netty-websocket-echo-server"))
+  .settings(
+    commons,
+    name := "simple-netty-websocket-echo-server",
+    libraryDependencies ++= Seq(
+      nettyAll,
+      nettyHttp,
+      log4j2Api,
+      log4j2Core,
+      bcCore, bcPkix
+    ),
+    publish := false
+  )
+
+//lazy val legacy = (project in file("modules/_legacy"))
+//  .configs(Examples)
+//  .settings(inConfig(Examples)(compileBase ++ compileSettings ++ Seq(
+//    run     := Defaults.runTask(Examples / fullClasspath , run / mainClass, run / runner).evaluated,
+//    runMain := Defaults.runMainTask(Examples / fullClasspath, run / runner).evaluated)))
+//  .settings(
+//      commons,
+//      name := "websocket-scala-client",
+//      libraryDependencies ++= Seq(
+//          nettyAll,
+//          nettyHttp,
+//          scalaStm,
+//          slf4jApi,
+//          slf4jSimple,
+//          akkaHttp(scalaVersion.value).cross(CrossVersion.binary),
+//          akkaStream(scalaVersion.value).cross(CrossVersion.binary)))
+
+lazy val root = (project in file("."))
+  .aggregate(api, backendNetty, backendJDK9, backendAkka, backendPekko)
+
+/*
+GET /websocket?encoding=text HTTP/1.1
+Origin: http://localhost
+Connection: Upgrade
+Host: localhost
+Sec-WebSocket-Key: P7Kp2hTLNRPFMGLxPV47eQ==
+Upgrade: websocket
+Sec-WebSocket-Version: 13
+ */
