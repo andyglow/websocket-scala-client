@@ -8,22 +8,35 @@ import org.apache.pekko.http.scaladsl.Http
 import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.apache.pekko.http.scaladsl.model.ws
 import org.apache.pekko.http.scaladsl.model.ws.Message
-import org.apache.pekko.stream.{CompletionStrategy, Materializer, OverflowStrategy}
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.stream.CompletionStrategy
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.OverflowStrategy
 import org.apache.pekko.stream.scaladsl.Keep
 import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
-
+import org.apache.pekko.util.Timeout
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 
 trait PekkoClient extends PekkoImplicits { this: PekkoPlatform =>
 
   class PekkoClient(address: ServerAddress, options: Options) extends WebsocketClient {
     implicit val system: ActorSystem = ActorSystem()
+    implicit val mat: Materializer   = Materializer.matFromSystem(system)
+    implicit val ic: InternalContext = PekkoInternalContext(options, mat)
+    private val tracer = options.tracer.lift.andThen(_ => ())
 
-    implicit lazy val ic: InternalContext = PekkoInternalContext(options, Materializer(system))
+    override def open(handler: WebsocketHandler): Websocket = new PekkoWebsocket(handler, options.tracer.lift.andThen(_ => ()))
+      with Websocket.TracingAsync
 
-    override def open(handler: WebsocketHandler): Websocket = new Websocket {
+    class PekkoWebsocket(handler: WebsocketHandler, val trace: Trace)
+        extends Websocket
+        with Websocket.AsyncImpl {
+      override protected implicit val executionContext: ExecutionContext = system.dispatcher
+      override protected def timeout: FiniteDuration                     = options.resolveTimeout
 
       private val flow = options.sslCtx match {
         case Some(sslCtx) =>
@@ -67,22 +80,20 @@ trait PekkoClient extends PekkoImplicits { this: PekkoPlatform =>
 
       handler._sender = this
 
-      override protected def send(x: Message): Unit = actor ! x
+      implicit val askTimeout: Timeout = options.resolveTimeout
 
-      override def ping(): Unit = ()
+      override protected def sendAsync(x: Message): Future[Unit] = Future { actor ! x }
 
-      override def close()(implicit ec: ExecutionContext): Future[Unit] = {
-        actor ! Done
-        connected.map(_ => ())
-      }
+      override protected def pingAsync(): Future[Unit] = Future.successful(())
+
+      override protected def closeAsync(): Future[Unit] = for {
+        _ <- Future { actor ! Done }
+        _ <- connected
+      } yield ()
     }
 
-    override def shutdownSync(): Unit = {
-      system.terminate().map(_ => ())(system.dispatcher)
-    }
-
-    override def shutdownAsync(implicit ec: ExecutionContext): Future[Unit] = {
-      system.terminate() map { _ => () }
+    override def shutdown(): Unit = {
+      Await.result(system.terminate().map(_ => ())(system.dispatcher), options.resolveTimeout)
     }
   }
 }

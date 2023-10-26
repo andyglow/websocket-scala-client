@@ -1,3 +1,14 @@
 # TODO
-- [x] add tests
-- [ ] add more tests
+- [x] add Avro4s tests
+- [ ] refactoring
+  - [x] jdk backend
+  - [x] netty backend
+  - [x] akka backend
+  - [x] pekko backend
+- [ ] add async-http-client backend https://www.baeldung.com/async-http-client-websockets
+- [ ] add okhttp backend https://github.com/square/okhttp/blob/master/samples/guide/src/main/java/okhttp3/recipes/WebSocketEcho.java
+- [ ] add armeria backend https://javadoc.io/doc/com.linecorp.armeria/armeria-javadoc/latest/com/linecorp/armeria/client/websocket/WebSocketClient.html
+- [ ] add zio-http backend
+- [ ] add protobuf serde https://scalapb.github.io/docs/generated-code
+- [ ] add json serdes (circe, play-json, spray-json, etc)
+- [ ] consider ci-release https://eed3si9n.com/auto-publish-sbt-plugin-from-github-actions/

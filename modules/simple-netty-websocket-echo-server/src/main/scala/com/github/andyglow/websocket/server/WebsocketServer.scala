@@ -95,13 +95,14 @@ object WebsocketServer {
                   val res = new DefaultFullHttpResponse(req.protocolVersion, responseStatus, ctx.alloc.buffer(0))
                   if (responseStatus.code != 200) {
                     ByteBufUtil.writeUtf8(res.content, responseStatus.toString)
-                    HttpUtil.setContentLength(res, res.content.readableBytes)
+                    HttpUtil.setContentLength(res, res.content.readableBytes.toLong)
                   }
                   // Send the response and close the connection if necessary.
                   val keepAlive = HttpUtil.isKeepAlive(req) && (responseStatus.code == 200)
                   HttpUtil.setKeepAlive(res, keepAlive)
                   val future = ctx.writeAndFlush(res)
                   if (!keepAlive) future.addListener(ChannelFutureListener.CLOSE)
+                  ()
                 }
 
                 if (!req.decoderResult.isSuccess) {
@@ -131,8 +132,11 @@ object WebsocketServer {
                     ctx.channel.writeAndFlush(new BinaryWebSocketFrame(frame.content()))
                   case _ =>
                 }
+                ()
               }
             })
+
+            ()
           }
         })
       b.bind(port).sync.channel

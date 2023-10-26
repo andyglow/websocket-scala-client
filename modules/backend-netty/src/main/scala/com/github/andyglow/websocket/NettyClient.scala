@@ -13,38 +13,48 @@ import io.netty.util
 import io.netty.util.CharsetUtil
 import io.netty.util.concurrent.GenericFutureListener
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.stm._
 import scala.util.Random
 import scala.util.control.NonFatal
 
+// TODO: re-work without using STM. We should be able to get it done relying on
+//       Netty's Feature/Promise stuff
 trait NettyClient { this: NettyPlatform =>
-
-  implicit class ChannelFutureSyntaxExtension(val f: ChannelFuture) {
-    def onComplete(fn: => Unit): ChannelFuture = {
-      f.addListener(new GenericFutureListener[util.concurrent.Future[_ >: Void]] {
-        override def operationComplete(future: util.concurrent.Future[_ >: Void]): Unit = fn
-      })
-      f
-    }
-  }
 
   private class InboundHandlerImpl(
     handshaker: WebSocketClientHandshaker,
-    private val handler: WebsocketHandler
+    options: Options,
+    private val handler: WebsocketHandler,
+    executor: Executor
   ) extends SimpleChannelInboundHandler[ByteBufHolder] {
+
+    // needed only to run message handling in a separate thread,
+    // otherwise closing a websocket from within a message handler block blocking the closing future resolution
+    // as Await.result blocks it
+    private def schedule(fn: => Unit): Unit = {
+      executor.execute(new Runnable {
+        override def run(): Unit = fn
+      })
+    }
 
     private val handshakeFuture = Ref.make[ChannelPromise]()
 
     @volatile private var websocket: Websocket = _
 
-    private val messageHandler: PartialFunction[MessageType, Unit] = { case frame =>
-      if (handler.onMessage.isDefinedAt(frame)) handler.onMessage(frame)
-      else handler.onUnhandledMessage(frame)
+    private val messageHandler: MessageType => Unit = { frame =>
+      options.tracer(Websocket.TracingEvent.Received(frame))
+      schedule {
+        if (handler.onMessage.isDefinedAt(frame)) handler.onMessage(frame)
+        else handler.onUnhandledMessage(frame)
+      }
     }
 
     /** Blocks until handshake is completed.
@@ -79,7 +89,12 @@ trait NettyClient { this: NettyPlatform =>
           if (!handshaker.isHandshakeComplete) {
             try {
               handshaker.finishHandshake(ch, msg)
-              websocket = new WebsocketImpl(ch)
+              websocket = new NettyWebsocket(
+                ch,
+                options.futureResolutionTimeout,
+                options.tracer.lift.andThen(_ => ()),
+                options.executionContext
+              ) with Websocket.TracingAsync
               handler._sender = websocket
               atomic { implicit txn => handshakeFuture().setSuccess() }
             } catch {
@@ -94,8 +109,9 @@ trait NettyClient { this: NettyPlatform =>
           }
       }
 
-      val handleUserMessages: PartialFunction[ByteBufHolder, Unit] = {
-        case f: MessageType if messageHandler.isDefinedAt(f) => messageHandler(f)
+      val handleUserMessages: PartialFunction[ByteBufHolder, Unit] = { case f: MessageType =>
+        f.content().retain()
+        messageHandler(f)
       }
 
       val handleKnownMessage = handleControlMessages orElse handleUserMessages
@@ -139,19 +155,19 @@ trait NettyClient { this: NettyPlatform =>
       }
 
     private def newWebsocket(handler: WebsocketHandler) = {
-      val inboundHandler = {
-        new InboundHandlerImpl(
-          handshaker = WebSocketClientHandshakerFactory.newHandshaker(
-            serverAddress.build(),
-            WebSocketVersion.V13,
-            subProtocol.orNull,
-            false,
-            headers,
-            maxFramePayloadLength
-          ),
-          handler = handler
-        )
-      }
+      val inboundHandler = new InboundHandlerImpl(
+        handshaker = WebSocketClientHandshakerFactory.newHandshaker(
+          serverAddress.build(),
+          WebSocketVersion.V13,
+          subProtocol.orNull,
+          false,
+          headers,
+          maxFramePayloadLength
+        ),
+        handler = handler,
+        options = options,
+        executor = loopGroup
+      )
 
       def initializer = new ChannelInitializer[SocketChannel]() {
 
@@ -185,21 +201,15 @@ trait NettyClient { this: NettyPlatform =>
       inboundHandler.blockUntilHandshaken()
     }
 
-    private def shutdown() =
-      loopGroup.shutdownGracefully(shutdownQuietPeriod.toMillis, shutdownTimeout.toMillis, TimeUnit.MILLISECONDS)
-
     override def open(handler: WebsocketHandler): Websocket = {
       newWebsocket(handler)
     }
 
-    def shutdownSync(): Unit = {
-      shutdown().syncUninterruptibly()
+    def shutdown(): Unit = {
+      loopGroup
+        .shutdownGracefully(shutdownQuietPeriod.toMillis, shutdownTimeout.toMillis, TimeUnit.MILLISECONDS)
+        .syncUninterruptibly()
       ()
-    }
-
-    def shutdownAsync(implicit ex: ExecutionContext): Future[Unit] = {
-      val f = AdaptNettyFuture(shutdown())
-      f map { _ => () }
     }
   }
 
@@ -208,55 +218,23 @@ trait NettyClient { this: NettyPlatform =>
     options: Options = defaultOptions
   ): WebsocketClient = new NettyClient(address, options)
 
-  class WebsocketImpl(ch: Channel) extends Websocket {
-
-    private trait Tracer {
-      def log(msg: String): Unit
-      def log(msg: String, frame: MessageType): Unit
+  class NettyWebsocket(
+    ch: Channel,
+    val timeout: FiniteDuration,
+    val trace: Trace,
+    ec: ExecutionContext
+  ) extends Websocket
+      with Websocket.AsyncImpl {
+    override protected implicit val executionContext: ExecutionContext = ec
+    override protected def sendAsync(x: MessageType): Future[Unit] = {
+      AdaptNettyFuture(ch.writeAndFlush(x)).map { _ => () }
     }
-    private object Trace {
-      private val rnd    = new Random
-      private val logger = LoggerFactory.getLogger("websocket-impl")
-      def next(): Tracer = new Tracer {
-        private val id = rnd.alphanumeric.take(4).mkString.toLowerCase
-        def log(msg: String): Unit = {
-          try {
-            MDC.put("traceId", id)
-            logger.debug(msg)
-          } finally {
-            MDC.clear()
-          }
-        }
-        def log(msg: String, frame: MessageType): Unit = {
-          try {
-            val frameStr = frame.content().toString(StandardCharsets.UTF_8)
-            MDC.put("traceId", id)
-            logger.debug(msg + ": " + frameStr)
-          } finally {
-            MDC.clear()
-          }
-        }
-      }
+    override protected def pingAsync(): Future[Unit] = {
+      AdaptNettyFuture(ch.writeAndFlush(new PingWebSocketFrame())).map(_ => ())
     }
-
-    override protected def send(x: MessageType): Unit = {
-      val trace = Trace.next()
-      trace.log("sending", x)
-      ch.writeAndFlush(x).onComplete { trace.log("sent", x) }
-      ()
-    }
-    override def ping(): Unit = {
-      val trace = Trace.next()
-      trace.log("pinging")
-      ch.writeAndFlush(new PingWebSocketFrame()).onComplete { trace.log("pinged") }
-      ()
-    }
-    override def close()(implicit ec: ExecutionContext): Future[Unit] = {
-      val trace = Trace.next()
-      trace.log("closing")
-      ch.writeAndFlush(new CloseWebSocketFrame()).onComplete { trace.log("closed") }
-      val f = AdaptNettyFuture(ch.closeFuture())
-      f.map { _ => () }
+    override protected def closeAsync(): Future[Unit] = {
+      ch.writeAndFlush(new CloseWebSocketFrame())
+      AdaptNettyFuture { ch.closeFuture() }.map(_ => ())
     }
   }
 }

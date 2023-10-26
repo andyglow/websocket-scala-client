@@ -9,9 +9,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.wordspec.AnyWordSpec
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
 
 object IntegrationSpecBase {
 
@@ -45,20 +43,29 @@ trait IntegrationSpecBase extends AnyWordSpec
   def isPingSupported: Boolean = true
 
   import platform._
+  import platform.implicits._
 
   protected def options: Options = defaultOptions
+
+//  Enable it for debug purposes
+//  ----------------------------
+//  protected def options: Options = defaultOptions withTracer {
+//    case event => println(s"TRACE: $event")
+//  }
 
   protected implicit val ec: ExecutionContext =
     ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
 
-//   protected final lazy val server: ServerHandle = new EmbeddedServer(ssl)
-  protected final lazy val server: ServerHandle    = new Server(ServerAddress("ws://localhost:9098/websocket"))
+   protected final lazy val server: ServerHandle = new EmbeddedServer(ssl)
+//  Another locally running Echo Websocket Server, if needed instead of embedded one, can be pointed like so
+//  --------------------------------------------------------------------------------------------------------
+//  protected final lazy val server: ServerHandle    = new Server(ServerAddress("ws://localhost:9098/websocket"))
+
   protected final lazy val client: WebsocketClient = platform.newClient(server.address, options)
   import client._
-  import client.implicits._
 
   override def afterAll(): Unit = {
-    client.shutdownSync()
+    client.shutdown()
     server.shutdown()
     super.afterAll()
   }
@@ -80,14 +87,14 @@ trait IntegrationSpecBase extends AnyWordSpec
       try { (parent.parent.state, script(ws)) }
       finally {
         parent.parent.state.whenFinished {
-          Await.ready(ws.close(), 5.seconds)
+          ws.close()
         }
       }
     }
   }
 
   trait State {
-    def whenFinished(fn: => Any): Unit
+    def whenFinished[T](fn: => T): T
   }
 
   protected def withState[T <: State](init: T): Builder0[T] = Builder0(init)
@@ -96,7 +103,7 @@ trait IntegrationSpecBase extends AnyWordSpec
     val latch              = new CountDownLatch(count)
     def countDown(): Unit  = latch.countDown()
     def succeeded: Boolean = latch.getCount == 0
-    def whenFinished(fn: => Any): Unit = {
+    def whenFinished[T](fn: => T): T = {
       latch.await(2, TimeUnit.SECONDS)
       fn
     }
@@ -138,27 +145,27 @@ trait IntegrationSpecBase extends AnyWordSpec
 
         "send/receive" when {
 
-          "String" in new SingleSendRound("foo") {
+          "String" in new SingleSendRound("string") {
             override val Match: OnMessage = { case M.String(`value`) => }
             assert(state.succeeded, "haven't received text echo in 1 second")
           }
 
-          "Array[Char]" in new SingleSendRound("foo".toCharArray) {
+          "Array[Char]" in new SingleSendRound("arrayOfChars".toCharArray) {
             override val Match: OnMessage = { case M.`Array[Char]`(v) if util.Arrays.equals(v, value) => }
             assert(state.succeeded, "haven't received text echo in 1 second")
           }
 
-          "Array[Byte]" in new SingleSendRound[Array[Byte]]("foo".getBytes) {
+          "Array[Byte]" in new SingleSendRound[Array[Byte]]("arrayOfBytes".getBytes) {
             override val Match: OnMessage = { case M.`Array[Byte]`(v) if util.Arrays.equals(v, value) => }
             assert(state.succeeded, "haven't received text echo in 1 second")
           }
 
-          "CharBuffer" in new SingleSendRound(CharBuffer.wrap("foo")) {
+          "CharBuffer" in new SingleSendRound(CharBuffer.wrap("charBuffer")) {
             override val Match: OnMessage = { case M.CharBuffer(`value`) => }
             assert(state.succeeded, "haven't received text echo in 1 second")
           }
 
-          "ByteBuffer" in new SingleSendRound(ByteBuffer.wrap("foo".getBytes)) {
+          "ByteBuffer" in new SingleSendRound(ByteBuffer.wrap("byteBuffer".getBytes)) {
             override val Match: OnMessage = { case M.ByteBuffer(v) if v.rewind() == value.rewind() => }
             assert(state.succeeded, "haven't received text echo in 1 second")
           }
@@ -175,7 +182,7 @@ trait IntegrationSpecBase extends AnyWordSpec
         val (state, _) = withState(CountingDownState(2)).withHandler { latch =>
           new WebsocketHandler {
             override val onMessage: OnMessage = {
-              case M.String("stop")  => latch.countDown(); sender().close()
+              case M.String("stop")  => sender().close(); latch.countDown();
               case M.String("start") => sender().send("stop"); latch.countDown()
               case m                 => fail(s"unexpected message: $m")
             }

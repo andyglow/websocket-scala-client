@@ -2,9 +2,15 @@ package com.github.andyglow.websocket
 
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
+import scala.util.Failure
+import scala.util.Random
+import scala.util.Success
+import scala.util.Try
 
 trait Platform {
   // We call it a message type, but effectively on some Platforms like Netty and JDK we do not
@@ -18,10 +24,9 @@ trait Platform {
   final type OnMessage          = PartialFunction[MessageType, Unit]
   final type OnUnhandledMessage = Function[MessageType, Unit]
 
-  /**
-   * This is needed for some platforms to perform effect resolutions.
-   * In Akka/Pekko it contains a materializer which is used to `msg.toStrict`
-   */
+  /** This is needed for some platforms to perform effect resolutions. In Akka/Pekko it contains a materializer which is
+    * used to `msg.toStrict`
+    */
   type InternalContext
 
   /** A Message Adapter aimed to be used to convert types to messages and vice versa.
@@ -41,13 +46,19 @@ trait Platform {
 
     def mapRight[TT](to: TT => T, from: T => TT): MessageAdapter[TT] = new MessageAdapter[TT] {
       override type F = self.F
-      override def toMessage(x: TT)(implicit ic: InternalContext): F = self.toMessage(to(x))
+      override def toMessage(x: TT)(implicit ic: InternalContext): F   = self.toMessage(to(x))
       override def fromMessage(x: F)(implicit ic: InternalContext): TT = from(self.fromMessage(x))
     }
   }
 
   object MessageAdapter {
     type Aux[T, FF <: MessageType] = MessageAdapter[T] { type F = FF }
+
+    def apply[T, FF <: MessageType](to: T => FF, from: FF => T): MessageAdapter.Aux[T, FF] = new MessageAdapter[T] {
+      override type F = FF
+      override def toMessage(x: T)(implicit ic: InternalContext): FF   = to(x)
+      override def fromMessage(x: FF)(implicit ic: InternalContext): T = from(x)
+    }
 
     /** Message Adapters for the most common types used to pass messages
       */
@@ -87,11 +98,16 @@ trait Platform {
 
   val implicits: MessageAdapter.Implicits with Implicits
 
+  type Tracer = PartialFunction[Websocket.TracingEvent, Unit]
+  protected type Trace = Websocket.TracingEvent => Unit
+
   /** Most common options shared by all the platforms
     */
   trait CommonOptions {
     def headers: Map[String, String] = Map.empty
     def subProtocol: Option[String]  = None
+    def tracer: Tracer               = acceptingAnyPF(())
+    def withTracer(tracer: Tracer): Options
   }
 
   /** Platform specific options
@@ -193,9 +209,11 @@ trait Platform {
   def onMessage(onMessage: OnMessage): WebsocketHandler.Builder = WebsocketHandler.Builder(onMessage)
 
   trait WebsocketClient {
+
     def open(handler: WebsocketHandler): Websocket
-    def shutdownSync(): Unit
-    def shutdownAsync(implicit ec: ExecutionContext): Future[Unit]
+
+    def shutdown(): Unit
+
     implicit val ic: InternalContext
 
     object M {
@@ -224,21 +242,140 @@ trait Platform {
 
   trait Websocket {
     protected def send(x: MessageType): Unit
-    final def send[T](x: T)(implicit bridge: MessageAdapter[T], ic: InternalContext): Unit = send(bridge.toMessage(x))
+    final def send[T](x: T)(implicit adapter: MessageAdapter[T], ic: InternalContext): Unit = send(adapter.toMessage(x))
     def ping(): Unit
-    def close()(implicit ec: ExecutionContext): Future[Unit]
+    def close(): Unit
+  }
+
+  object Websocket {
+
+    /** Internal trait supposed to be used in implementations which provide internally async api. Like these one: Jdk
+      * Http Client, Netty, Akka, Pekko
+      *
+      * It converts async calls into sync
+      */
+    trait AsyncImpl extends Websocket {
+      protected implicit val executionContext: ExecutionContext
+      protected def timeout: FiniteDuration
+      override def send(x: MessageType): Unit = Await.result(sendAsync(x), timeout)
+      override def ping(): Unit               = Await.result(pingAsync(), timeout)
+      override def close(): Unit              = Await.result(closeAsync(), timeout)
+
+      protected def sendAsync(x: MessageType): Future[Unit]
+      protected def pingAsync(): Future[Unit]
+      protected def closeAsync(): Future[Unit]
+    }
+
+    trait TracingBase extends Websocket {
+      private val rnd = new Random
+      protected val trace: Trace
+      protected def withTraceId[T](block: String => T): T = {
+        val traceId = rnd.alphanumeric.take(8).mkString("")
+        block(traceId)
+      }
+    }
+
+    trait TracingSync extends Websocket with TracingBase {
+      abstract override def send(x: MessageType): Unit = withTraceId { traceId =>
+        try {
+          trace(TracingEvent.Sending(traceId, x))
+          super.send(x)
+        } catch {
+          case ex: Throwable => trace(TracingEvent.Sent(traceId, Failure(ex)))
+        } finally {
+          trace(TracingEvent.Sent(traceId, Success(x)))
+        }
+      }
+      abstract override def ping(): Unit = withTraceId { traceId =>
+        try {
+          trace(TracingEvent.Pinging(traceId))
+          super.ping()
+        } catch {
+          case ex: Throwable => trace(TracingEvent.Pinged(traceId, Failure(ex)))
+        } finally {
+          trace(TracingEvent.Pinged(traceId, Success(())))
+        }
+      }
+      abstract override def close(): Unit = withTraceId { traceId =>
+        try {
+          trace(TracingEvent.Closing(traceId))
+          super.close()
+        } catch {
+          case ex: Throwable => trace(TracingEvent.Closed(traceId, Failure(ex)))
+        } finally {
+          trace(TracingEvent.Closed(traceId, Success(())))
+        }
+      }
+    }
+
+    trait TracingAsync extends Websocket with TracingBase with AsyncImpl {
+      abstract override protected def sendAsync(x: MessageType): Future[Unit] = withTraceId { traceId =>
+        val f = for {
+          _ <- Future.successful(trace(TracingEvent.Sending(traceId, x)))
+          _ <- super.sendAsync(x)
+        } yield x
+        f.onComplete { result =>
+          trace(TracingEvent.Sent(traceId, result))
+        }
+        f.map(_ => ())
+      }
+      abstract override protected def pingAsync(): Future[Unit] = withTraceId { traceId =>
+        val f = for {
+          _ <- Future.successful(trace(TracingEvent.Pinging(traceId)))
+          x <- super.pingAsync()
+        } yield x
+        f.onComplete { result =>
+          trace(TracingEvent.Pinged(traceId, result))
+        }
+        f.map(_ => ())
+      }
+      abstract override protected def closeAsync(): Future[Unit] = withTraceId { traceId =>
+        val f = for {
+          _ <- Future { trace(TracingEvent.Closing(traceId)) }
+          x <- super.closeAsync()
+        } yield x
+        f.onComplete { result =>
+          trace(TracingEvent.Closed(traceId, result))
+        }
+        f.map(_ => ())
+      }
+    }
+
+    trait TracingEvent
+    object TracingEvent {
+      case class Received(value: MessageType) extends TracingEvent {
+        override def toString: String = s"Received(${stringify(value)})"
+      }
+      case class Sending(traceId: String, value: MessageType) extends TracingEvent {
+        override def toString: String = s"Sending($traceId, ${stringify(value)})"
+      }
+      case class Sent(traceId: String, result: Try[MessageType]) extends TracingEvent {
+        override def toString: String = {
+          val res = result match {
+            case Success(r)  => stringify(r)
+            case Failure(ex) => "failed(" + ex.getMessage + ")"
+          }
+          s"Sent($traceId, $res)"
+        }
+      }
+      case class Pinging(traceId: String)                   extends TracingEvent
+      case class Pinged(traceId: String, result: Try[Unit]) extends TracingEvent
+      case class Closing(traceId: String)                   extends TracingEvent
+      case class Closed(traceId: String, result: Try[Unit]) extends TracingEvent
+    }
   }
 
   object NoopWebsocket extends Websocket {
-    override protected def send(x: MessageType): Unit                 = ()
-    override def close()(implicit ec: ExecutionContext): Future[Unit] = Future.successful(())
-    override def ping(): Unit                                         = ()
-    override def toString: String                                     = "noop-sender"
+    override protected def send(x: MessageType): Unit = ()
+    override def close(): Unit                        = ()
+    override def ping(): Unit                         = ()
+    override def toString: String                     = "noop-sender"
   }
 
   implicit class ByteBufferSyntaxExtension(private val bb: ByteBuffer) {
+    import java.nio.charset.StandardCharsets.UTF_8
 
-    def toByteArray: Array[Byte] = {
+    def asByteArray: Array[Byte] = {
       if (bb.hasArray) bb.array()
       else {
         bb.rewind()
@@ -247,5 +384,34 @@ trait Platform {
         arr
       }
     }
+
+    def asString: String = {
+      new String(asByteArray, UTF_8)
+    }
   }
+
+  implicit class CharBufferSyntaxExtension(private val bb: CharBuffer) {
+
+    def asCharArray: Array[Char] = {
+      if (bb.hasArray) bb.array()
+      else {
+        bb.rewind()
+        val arr = Array.ofDim[Char](bb.remaining())
+        bb.get(arr)
+        arr
+      }
+    }
+
+    def asString: String = {
+      new String(asCharArray)
+    }
+  }
+
+  protected def acceptingAnyPF[F, T](value: => T): PartialFunction[F, T] = new PartialFunction[F, T] {
+    override def isDefinedAt(x: F): Boolean = true
+    override def apply(v1: F): T            = value
+    override def toString(): String         = "acceptingAnyPF"
+  }
+
+  protected def stringify(x: MessageType): String
 }

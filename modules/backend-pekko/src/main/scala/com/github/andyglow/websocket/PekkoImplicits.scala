@@ -4,15 +4,12 @@ import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import org.apache.pekko.http.scaladsl.model.ws
 import org.apache.pekko.http.scaladsl.model.ws.BinaryMessage
-import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
 import scala.concurrent.Await
 
 trait PekkoImplicits { this: PekkoPlatform =>
 
-  class PekkoImplicits
-      extends MessageAdapter.Implicits
-      with Implicits {
+  class PekkoImplicits extends MessageAdapter.Implicits with Implicits {
 
     private class TextAdapter[T](
       toString: T => String,
@@ -75,7 +72,7 @@ trait PekkoImplicits { this: PekkoPlatform =>
     implicit val ByteArrayMessageAdapter: MessageAdapter.Aux[Array[Byte], BinaryMessage] =
       new BinaryAdapter(
         toByteString = ByteString.apply,
-        fromByteString = _.asByteBuffer.toByteArray
+        fromByteString = _.asByteBuffer.asByteArray
       )
 
   }
@@ -88,6 +85,6 @@ trait PekkoImplicits { this: PekkoPlatform =>
   ): T = x match {
     case frame: Binary => onBinary(frame)
     case frame: Text   => onText(frame)
-    case _             => throw new IllegalArgumentException(s"unsupported message type: ${x.getClass}")
+    case null          => throw new IllegalArgumentException("unsupported null message")
   }
 }

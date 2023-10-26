@@ -1,3 +1,5 @@
+import sbt.librarymanagement.CrossVersion
+
 object CompilerOptions {
 
   private val base = Seq(
@@ -28,12 +30,13 @@ object CompilerOptions {
 
   private val opts300 = base // FIXME
 
-  def apply(v: ScalaVer): Seq[String] = {
-    v match {
-      case ScalaVer._211 => opts211
-      case ScalaVer._212 => opts212
-      case ScalaVer._213 => opts213
-      case ScalaVer._300 => opts300
+  def apply(scalaVersion: String): Seq[String] = {
+    CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, 11)) => opts211
+      case Some((2, 12)) => opts212
+      case Some((2, 13)) => opts213
+      case Some((3, _))  => opts300
+      case _             => Seq()
     }
   }
 }

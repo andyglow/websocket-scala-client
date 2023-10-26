@@ -1,11 +1,13 @@
 package com.github.andyglow.websocket
 
 final class NettyPlatformPlainSpec extends IntegrationSpecBase {
-  import NettyPlatform._
-  override val platform = NettyPlatform
+  override val platform: NettyPlatform = NettyPlatform
   override val ssl = false
   override val isPingSupported = true
-  override val options = NettyOptions(
+  override val options: platform.NettyOptions = platform.NettyOptions(
     logLevel = Some(io.netty.handler.logging.LogLevel.INFO)
+//    tracingEventHandler = {
+//      case event => println(s"TRACE: $event")
+//    }
   )
 }

@@ -8,11 +8,10 @@ import javax.net.ssl.{SSLContext, TrustManager, X509TrustManager}
 
 @DoNotDiscover
 final class JdkPlatformSslSpec extends IntegrationSpecBase {
-  import JdkPlatform._
-  override val platform = JdkPlatform
+  override val platform: JdkPlatform = JdkPlatform
   override val ssl = true
   override val isPingSupported = true
-  override val options = {
+  override val options: platform.JdkOptions = {
 
     val trustAny = Array[TrustManager](new X509TrustManager() {
       def getAcceptedIssuers: Array[X509Certificate] = Array.ofDim[X509Certificate](0)
@@ -24,7 +23,7 @@ final class JdkPlatformSslSpec extends IntegrationSpecBase {
     val sslCtx = SSLContext.getInstance("SSL")
     sslCtx.init(null, trustAny, new SecureRandom())
 
-    JdkOptions(
+    platform.JdkOptions(
       sslCtx = Some(sslCtx)
     )
   }

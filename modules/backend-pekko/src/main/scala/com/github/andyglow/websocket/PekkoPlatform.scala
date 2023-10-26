@@ -1,8 +1,11 @@
 package com.github.andyglow.websocket
 
 import javax.net.ssl.SSLContext
+import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.ws.Message
 import org.apache.pekko.stream.Materializer
+
 import scala.concurrent.duration._
 
 class PekkoPlatform extends Platform with PekkoClient {
@@ -20,10 +23,15 @@ class PekkoPlatform extends Platform with PekkoClient {
   case class PekkoOptions(
     override val headers: Map[String, String] = Map.empty,
     override val subProtocol: Option[String] = None,
+    override val tracer: Tracer = acceptingAnyPF(()),
     readStreamedMessageTimeout: FiniteDuration = 1.second,
     resolveTimeout: FiniteDuration = 5.second,
-    sslCtx: Option[SSLContext] = None
-  ) extends CommonOptions
+    sslCtx: Option[SSLContext] = None,
+    getSystem: () => ActorSystem = () => ActorSystem(),
+    handlerParallelism: Int = java.lang.Runtime.getRuntime.availableProcessors()
+  ) extends CommonOptions {
+    override def withTracer(tracer: Tracer): PekkoOptions = PekkoOptions(tracer = tracer)
+  }
 
   override type Options = PekkoOptions
 
@@ -32,7 +40,14 @@ class PekkoPlatform extends Platform with PekkoClient {
   override def newClient(address: ServerAddress, options: Options = defaultOptions): WebsocketClient =
     new PekkoClient(address, options)
 
-  override lazy val implicits: MessageAdapter.Implicits with Implicits = new PekkoImplicits(options)
+  override val implicits: MessageAdapter.Implicits with Implicits = new PekkoImplicits
+
+  override protected def stringify(x: Message): String = x match {
+    case ws.TextMessage.Strict(x) => s"text[$x]"
+    case ws.TextMessage.Streamed(_) => "text(...)"
+    case ws.BinaryMessage.Strict(x) => s"binary[${x.encodeBase64.mkString}]"
+    case ws.BinaryMessage.Streamed(_) => "binary(...)"
+  }
 }
 
 object PekkoPlatform extends PekkoPlatform

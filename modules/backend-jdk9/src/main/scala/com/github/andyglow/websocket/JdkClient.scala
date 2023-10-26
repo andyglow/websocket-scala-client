@@ -3,41 +3,59 @@ package com.github.andyglow.websocket
 import java.net.http.{WebSocket => JWebsocket}
 import java.net.http.HttpClient
 import java.nio.ByteBuffer
-import java.util.concurrent.CompletionStage
+import java.util.concurrent.{CompletionStage, Executor, Executors}
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
 trait JdkClient { this: JdkPlatform =>
 
-  private class WebsocketListenerImpl(handler: WebsocketHandler) extends JWebsocket.Listener {
+  private class JdkWebsocketListener(handler: WebsocketHandler, executor: Executor) extends JWebsocket.Listener {
+
+    def nonBlocking(fn: => Any): Unit = executor.execute(new Runnable {
+      override def run(): Unit = {
+        fn
+        ()
+      }
+    })
 
     override def onPong(webSocket: JWebsocket, message: ByteBuffer): CompletionStage[_] = {
-      if (handler.onMessage.isDefinedAt(())) handler.onMessage(())
-      else handler.onUnhandledMessage(())
+      nonBlocking {
+        if (handler.onMessage.isDefinedAt(())) handler.onMessage(())
+        else handler.onUnhandledMessage(())
+        webSocket.request(1)
+      }
 
-      super.onPong(webSocket, message)
+      null
     }
 
     override def onText(webSocket: JWebsocket, data: CharSequence, last: Boolean): CompletionStage[_] = {
-      if (handler.onMessage.isDefinedAt(data)) handler.onMessage(data)
-      else handler.onUnhandledMessage(data)
+      nonBlocking {
+        if (handler.onMessage.isDefinedAt(data)) handler.onMessage(data)
+        else handler.onUnhandledMessage(data)
+        webSocket.request(1)
+      }
 
-      super.onText(webSocket, data, last)
+      null
     }
 
     override def onBinary(webSocket: JWebsocket, data: ByteBuffer, last: Boolean): CompletionStage[_] = {
-      if (handler.onMessage.isDefinedAt(data)) handler.onMessage(data)
-      else handler.onUnhandledMessage(data)
+      nonBlocking {
+        if (handler.onMessage.isDefinedAt(data)) handler.onMessage(data)
+        else handler.onUnhandledMessage(data)
+        webSocket.request(1)
+      }
 
-      super.onBinary(webSocket, data, last)
+      null
     }
 
     override def onClose(webSocket: JWebsocket, statusCode: Int, reason: String): CompletionStage[_] = {
       handler.onClose(())
-      super.onClose(webSocket, statusCode, reason)
+      null
     }
   }
 
@@ -53,23 +71,24 @@ trait JdkClient { this: JdkPlatform =>
 
       options.sslCtx foreach { sslCtx => httpBuilder.sslContext(sslCtx) }
 
+      val executor = httpBuilder.build().executor().getOrElse(Executors.newCachedThreadPool())
       val wsBuilder = httpBuilder.build().newWebSocketBuilder()
 
       options.subProtocol foreach { x => wsBuilder.subprotocols(x) }
       options.headers foreach { case (k, v) => wsBuilder.header(k, v) }
 
       val jWs = wsBuilder
-        .buildAsync(serverAddress.build(), new WebsocketListenerImpl(handler))
+        .buildAsync(serverAddress.build(), new JdkWebsocketListener(handler, executor))
         .join()
 
-      val ws = new WebsocketImpl(jWs)
+      val ws =
+        new JdkWebsocket(jWs, options.futureResolutionTimeout, options.tracer.lift.andThen(_ => ()), executor)
+          with Websocket.TracingAsync
       handler._sender = ws
       ws
     }
 
-    def shutdownSync(): Unit = ()
-
-    def shutdownAsync(implicit ex: ExecutionContext): Future[Unit] = Future.successful(())
+    def shutdown(): Unit = ()
   }
 
   override def newClient(
@@ -77,49 +96,31 @@ trait JdkClient { this: JdkPlatform =>
     options: Options = defaultOptions
   ): WebsocketClient = new JdkClient(address, options)
 
-  class WebsocketImpl(ws: java.net.http.WebSocket) extends Websocket {
+  class JdkWebsocket(
+    ws: java.net.http.WebSocket,
+    val timeout: FiniteDuration,
+    val trace: Trace,
+    executor: Executor
+  ) extends Websocket
+      with Websocket.AsyncImpl {
 
-    private trait Tracer { def log(msg: String): Unit }
-    private object Trace {
-      private val rnd    = new Random
-      private val logger = LoggerFactory.getLogger("websocket-impl")
-      def next(): Tracer = new Tracer {
-        private val id = rnd.alphanumeric.take(4).mkString
-        def log(msg: String): Unit = {
-          try {
-            MDC.put("traceId", id)
-            logger.debug(msg)
-          } finally {
-            MDC.clear()
-          }
-        }
-      }
-    }
+    override protected implicit val executionContext: ExecutionContext = ExecutionContext.fromExecutor(executor)
 
-    override protected def send(x: MessageType): Unit = {
-      val trace = Trace.next()
-      trace.log("sending")
+    override protected def sendAsync(x: MessageType): Future[Unit] = {
       val f = x match {
         case binary: Binary => ws.sendBinary(binary, true)
         case text: Text     => ws.sendText(text, true)
         case _: Pong        => ws.sendPong(ByteBuffer.allocate(0))
         case _              => throw new IllegalArgumentException(s"unsupported message type: ${x.getClass}")
       }
-      f.thenRun { () => trace.log("sent") }
-      ()
+      AdaptJdkFuture(f).map(_ => ())
     }
-    override def ping(): Unit = {
-      val trace = Trace.next()
-      trace.log("pinging")
-      ws.sendPing(ByteBuffer.allocate(0)).thenRun { () => trace.log("pinged") }
-      ()
+    override protected def pingAsync(): Future[Unit] = {
+      AdaptJdkFuture(ws.sendPing(ByteBuffer.allocate(0))).map(_ => ())
     }
-    override def close()(implicit ec: ExecutionContext): Future[Unit] = {
-      val trace = Trace.next()
-      trace.log("closing")
-      AdaptJdkFuture {
-        ws.sendClose(JWebsocket.NORMAL_CLOSURE, "ok").thenApply { ws => trace.log("closed"); () }
-      }
+    override protected def closeAsync(): Future[Unit] = {
+      if (ws.isOutputClosed) Future.successful(())
+      else AdaptJdkFuture(ws.sendClose(JWebsocket.NORMAL_CLOSURE, "ok")).map(_ => ())
     }
   }
 }

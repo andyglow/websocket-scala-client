@@ -9,10 +9,10 @@ object JdkPlay {
   def main(args: Array[String]): Unit = {
     val p: Platform = JdkPlatform
     import p._
+    import p.implicits._
 
     val cli = p.newClient(ServerAddress("ws://localhost:9098/websocket"))
     import cli._
-    import cli.implicits._
 
 //    val pf = p.WebsocketHandler.Builder({
 //      case p.Msg.Str("bar")       => println("got text `bar`")
@@ -37,7 +37,7 @@ object JdkPlay {
         println(s"got byte arr [${arr.length} ${HexFormat.of().formatHex(arr)}|${new String(arr)}]")
       case M.ByteBuffer(buf) =>
         println(
-          s"got byte buf [${buf.capacity()} ${HexFormat.of().formatHex(buf.toByteArray)}}|${new String(buf.toByteArray)}]"
+          s"got byte buf [${buf.capacity()} ${HexFormat.of().formatHex(buf.asByteArray)}}|${new String(buf.asByteArray)}]"
         )
     }.onUnhandled { case x =>
       println(s"got unhandled $x")
@@ -55,6 +55,6 @@ object JdkPlay {
     ws.send(ByteBuffer.wrap("byte buffer".getBytes))
 
     Thread.sleep(1000L)
-    cli.shutdownSync()
+    cli.shutdown()
   }
 }

@@ -34,7 +34,7 @@ trait JdkImplicits { this: JdkPlatform =>
     implicit val ByteArrayMessageAdapter: MessageAdapter.Aux[Array[Byte], Binary] = new MessageAdapter[Array[Byte]] {
       override type F = Binary
       override def toMessage(msg: Array[Byte])(implicit ic: InternalContext): F        = ByteBuffer.wrap(msg)
-      override def fromMessage(msg: Binary)(implicit ic: InternalContext): Array[Byte] = msg.toByteArray
+      override def fromMessage(msg: Binary)(implicit ic: InternalContext): Array[Byte] = msg.asByteArray
     }
   }
 

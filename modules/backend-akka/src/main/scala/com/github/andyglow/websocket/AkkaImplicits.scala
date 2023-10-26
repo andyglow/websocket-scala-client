@@ -1,18 +1,15 @@
 package com.github.andyglow.websocket
 
-import java.nio.ByteBuffer
-import java.nio.CharBuffer
 import akka.http.scaladsl.model.ws
 import akka.http.scaladsl.model.ws.BinaryMessage
-import akka.stream.Materializer
 import akka.util.ByteString
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
 import scala.concurrent.Await
 
 trait AkkaImplicits { this: AkkaPlatform =>
 
-  class PekkoImplicits
-      extends MessageAdapter.Implicits
-      with Implicits {
+  class AkkaImplicits extends MessageAdapter.Implicits with Implicits {
 
     private class TextAdapter[T](
       toString: T => String,
@@ -75,7 +72,7 @@ trait AkkaImplicits { this: AkkaPlatform =>
     implicit val ByteArrayMessageAdapter: MessageAdapter.Aux[Array[Byte], BinaryMessage] =
       new BinaryAdapter(
         toByteString = ByteString.apply,
-        fromByteString = _.asByteBuffer.toByteArray
+        fromByteString = _.asByteBuffer.asByteArray
       )
 
   }
@@ -88,6 +85,6 @@ trait AkkaImplicits { this: AkkaPlatform =>
   ): T = x match {
     case frame: Binary => onBinary(frame)
     case frame: Text   => onText(frame)
-    case _             => throw new IllegalArgumentException(s"unsupported message type: ${x.getClass}")
+    case null          => throw new IllegalArgumentException(s"unsupported null message")
   }
 }
