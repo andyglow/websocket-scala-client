@@ -1,6 +1,6 @@
 # TODO
 - [x] add Avro4s tests
-- [ ] refactoring
+- [x] refactoring
   - [x] jdk backend
   - [x] netty backend
   - [x] akka backend
@@ -12,3 +12,4 @@
 - [ ] add protobuf serde https://scalapb.github.io/docs/generated-code
 - [ ] add json serdes (circe, play-json, spray-json, etc)
 - [ ] consider ci-release https://eed3si9n.com/auto-publish-sbt-plugin-from-github-actions/
+- [ ] documentation. consider taking a look at how it's done in https://github.com/tersesystems/blindsight

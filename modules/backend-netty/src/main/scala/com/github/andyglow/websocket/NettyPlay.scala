@@ -17,7 +17,7 @@ object NettyPlay {
     //    val pf = p.WebsocketHandler.Builder({
     //      case p.Msg.Str("bar")       => println("got text `bar`")
     //      case p.Msg.Str(someString)  => println(s"got text `$someString`")
-    //      case p.Msg.ByteArr(arr)     => println(s"got bytes [${HexFormat.of().formatHex(arr)}]")
+    //      case p.Msg.ByteArr(arr)     => println(s"got bytes [${EncodeHex(arr)}]")
     //      case p.Msg.Pong()           => println(s"got pong")
     //    }).build()
     //    val ws = cli.open(pf)
@@ -25,7 +25,7 @@ object NettyPlay {
     //    val ws = cli.open({
     //      case p.Msg.Str("bar")       => println("got text `bar`")
     //      case p.Msg.Str(someString)  => println(s"got text `$someString`")
-    //      case p.Msg.ByteArr(arr)     => println(s"got bytes [${HexFormat.of().formatHex(arr)}]")
+    //      case p.Msg.ByteArr(arr)     => println(s"got bytes [${EncodeHex(arr)}]")
     //      case p.Msg.Pong()           => println(s"got pong")
     //    })
 
@@ -50,7 +50,7 @@ object NettyPlay {
 //        case p.Msg.Pong()          => println("got pong"); Thread.sleep(100L); sender().ping()
 //        case p.Msg.Str("bar")      => println("got text `bar`")
 //        case p.Msg.Str(someString) => println(s"got text `$someString`")
-//        case p.Msg.ByteArr(arr)    => println(s"got bytes [${HexFormat.of().formatHex(arr)}]")
+//        case p.Msg.ByteArr(arr)    => println(s"got bytes [${EncodeHex(arr)}]")
 //      }
 //    })
 
