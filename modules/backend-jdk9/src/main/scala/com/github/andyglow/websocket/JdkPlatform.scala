@@ -1,7 +1,7 @@
 package com.github.andyglow.websocket
 
+import com.github.andyglow.utils.EncodeHex
 import java.nio.ByteBuffer
-import java.util.HexFormat
 import javax.net.ssl.SSLContext
 import scala.concurrent.duration._
 
@@ -30,7 +30,7 @@ class JdkPlatform extends Platform with JdkImplicits with JdkClient {
 
   override protected def stringify(x: Any): String = x match {
     case x: Text   => x.toString
-    case x: Binary => HexFormat.of().formatHex(x.asByteArray)
+    case x: Binary => EncodeHex(x.asByteArray)
     case _         => s"unknown($x)"
   }
 

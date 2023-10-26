@@ -1,8 +1,8 @@
 package com.github.andyglow.websocket
 
+import com.github.andyglow.utils.EncodeHex
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
-import java.util.HexFormat
 
 object JdkPlay {
 
@@ -34,10 +34,10 @@ object JdkPlay {
       case M.String(someString) => println(s"got string `$someString`")
       case M.`Array[Char]`(arr) => println(s"got char arr `${new String(arr)}`")
       case M.`Array[Byte]`(arr) =>
-        println(s"got byte arr [${arr.length} ${HexFormat.of().formatHex(arr)}|${new String(arr)}]")
+        println(s"got byte arr [${arr.length} ${EncodeHex(arr)}|${new String(arr)}]")
       case M.ByteBuffer(buf) =>
         println(
-          s"got byte buf [${buf.capacity()} ${HexFormat.of().formatHex(buf.asByteArray)}}|${new String(buf.asByteArray)}]"
+          s"got byte buf [${buf.capacity()} ${EncodeHex(buf.asByteArray)}}|${new String(buf.asByteArray)}]"
         )
     }.onUnhandled { case x =>
       println(s"got unhandled $x")

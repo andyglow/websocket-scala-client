@@ -1,11 +1,11 @@
 package com.github.andyglow.websocket
 
+import com.github.andyglow.utils.EncodeHex
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame
-import java.util.HexFormat
 
 private[websocket] object NettyStringify {
 
@@ -23,8 +23,7 @@ private[websocket] object NettyStringify {
       val arr = Array.ofDim[Byte](x.capacity())
       x.getBytes(0, arr)
       x.retain()
-      HexFormat.of().formatHex(arr)
-//      "bytes"
+      EncodeHex(arr)
 
     case _ => "unknown(" + x + ")"
   }

@@ -130,7 +130,7 @@ lazy val backendPekko = (projectMatrix in file("modules/backend-pekko"))
   )
   .jvmPlatform(scalaVersions = allScalaVersions(_ == scala211))
 
-lazy val backendJDK9 = (projectMatrix in file("modules/backend-jdk9"))
+lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk9"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     commons,
@@ -173,5 +173,5 @@ lazy val simpleNettyEchoWebsocketServer = (projectMatrix in file("modules/simple
 
 lazy val root = (project in file("."))
   .aggregate(
-    api.projectRefs ++ backendNetty.projectRefs ++ backendJDK9.projectRefs ++ backendAkka.projectRefs ++ backendPekko.projectRefs: _*
+    api.projectRefs ++ backendNetty.projectRefs ++ backendJdkHttpClient.projectRefs ++ backendAkka.projectRefs ++ backendPekko.projectRefs: _*
   )
