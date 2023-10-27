@@ -12,6 +12,9 @@ object Dependencies {
   // log4j is only needed to test-we-server
   val log4jVersion = "2.21.0"
 
+  val scalatestVersion = "3.2.17"
+  val mockitoVersion = "5.6.0"
+
   val nettyAll    = "io.netty"                 % "netty-all"        % nettyVersion       % Compile
   val nettyHttp   = "io.netty"                 % "netty-codec-http" % nettyVersion       % Compile
   val slf4jApi    = "org.slf4j"                % "slf4j-api"        % slf4jVersion       % Compile
@@ -23,6 +26,21 @@ object Dependencies {
   val bcPkix      = "org.bouncycastle"         % "bcpkix-jdk18on"   % bcVersion          % Compile
   val pekkoHttp   = "org.apache.pekko"        %% "pekko-http"       % pekkoHttpVersion   % Compile
   val pekkoStream = "org.apache.pekko"        %% "pekko-stream"     % pekkoStreamVersion % Compile
+
+  val scalatest   = "org.scalatest"           %% "scalatest"        % scalatestVersion   % Test
+  val mockito     = "org.mockito"              % "mockito-core"     % mockitoVersion     % Test
+
+  object scalatestplus {
+
+    def apply(scalaVersion: String): ModuleID = {
+      val (a, v) = CrossVersion.partialVersion(scalaVersion) match {
+        case Some((2, 11)) => ("scalacheck-1-15", "3.2.3.0")
+        case _             => ("scalacheck-1-17", "3.2.17.0")
+      }
+
+      "org.scalatestplus" %% a  % v
+    }
+  }
 
   object avro4s {
 

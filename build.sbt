@@ -4,15 +4,28 @@ import commandmatrix.Dimension
 import sbt.*
 import sbt.Keys.*
 import sbt.internal.ProjectMatrix
-import sbt.internal.ProjectMatrixReference
 
 ThisBuild / scalaVersion := scala211
 
+/**
+  * Early Semver
+  *
+  * Given a version number major.minor.patch, you MUST increment the:
+  * - [[major]] version if backward [[binary]] compatibility is broken,
+  * - [[minor]] version if backward [[source]] compatibility is broken, and
+  * - [[patch]] version to signal neither [[binary]] nor [[source]] incompatibility.
+  * When the [[major]] version is [[0]], a [[minor]] version increment *MAY* contain
+  * both [[source]] and [[binary]] breakages, but a [[patch]] version increment *MUST* remain [[binary]] compatible.
+  *
+  * Links
+  * - https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html
+  * - https://docs.scala-lang.org/overviews/core/binary-compatibility-for-library-authors.html#versioning-scheme---communicating-compatibility-breakages
+  */
 ThisBuild / versionScheme := Some("early-semver")
 
 ThisBuild / libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest"    % "3.2.17" % Test,
-  "org.mockito"    % "mockito-core" % "5.6.0"  % Test
+  scalatest,
+  mockito,
 )
 
 // format: off
@@ -26,7 +39,8 @@ lazy val api = (projectMatrix in file("modules/api"))
   .dependsOn(simpleNettyEchoWebsocketServer % Test)
   .settings(
     name := "websocket-api",
-    commonOptions
+    commonOptions,
+    libraryDependencies += scalatestplus(scalaVersion.value),
   )
   .jvmPlatform(scalaVersions = allScalaVersions())
 
