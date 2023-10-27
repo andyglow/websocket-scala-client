@@ -49,19 +49,19 @@ jobs:
           cache: sbt
 
       - name: Compile and Run Tests
-        if: matrix.scala != '2.13.12'
+        if: matrix.scala != '2_13'
         run: sbt test-$VERSION_SPEC
 
       - name: Compile, Run Tests and Generate Code Coverage Reports (2.13 only)
-        if: matrix.scala == '2.13.12'
+        if: matrix.scala == '2_13'
         run: sbt clean-$VERSION_SPEC coverage-$VERSION_SPEC test-$VERSION_SPEC
 
       - name: Aggregate Code Coverage Report (2.13 only)
-        if: matrix.scala == '2.13.12'
+        if: matrix.scala == '2_13'
         run: sbt coverageAggregate-$VERSION_SPEC
 
       - name: Upload Code Coverage Report (2.13 only)
-        if: matrix.scala == '2.13.12'
+        if: matrix.scala == '2_13'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
