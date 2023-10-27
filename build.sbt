@@ -127,7 +127,7 @@ inThisBuild(
   Seq(
     // sbt-commandmatrix
     commands ++= CrossCommand.all(
-      Seq("clean", "test", "coverage", "coverageAggregate"),
+      Seq("clean", "test"),
       matrices = matrices,
       dimensions = Seq(
         Dimension.scala("2.13", fullFor3 = true),

@@ -54,11 +54,11 @@ jobs:
 
       - name: Compile, Run Tests and Generate Code Coverage Reports (2.13 only)
         if: matrix.scala == '2_13'
-        run: sbt clean-$VERSION_SPEC coverage-$VERSION_SPEC test-$VERSION_SPEC
+        run: sbt clean-$VERSION_SPEC coverage test-$VERSION_SPEC
 
       - name: Aggregate Code Coverage Report (2.13 only)
         if: matrix.scala == '2_13'
-        run: sbt coverageAggregate-$VERSION_SPEC
+        run: sbt coverageAggregate
 
       - name: Upload Code Coverage Report (2.13 only)
         if: matrix.scala == '2_13'
