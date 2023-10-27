@@ -8,7 +8,6 @@ import org.apache.pekko.http.scaladsl.Http
 import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.apache.pekko.http.scaladsl.model.ws
 import org.apache.pekko.http.scaladsl.model.ws.Message
-import org.apache.pekko.pattern.ask
 import org.apache.pekko.stream.CompletionStrategy
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.OverflowStrategy
@@ -59,10 +58,13 @@ trait PekkoClient extends PekkoImplicits { this: PekkoPlatform =>
         )
 
       private val incoming: Sink[ws.Message, Future[Done]] = {
-        Sink.foreach(handler.onMessage)
+        Sink.foreachAsync(options.handlerParallelism) { msg =>
+          tracer(Websocket.TracingEvent.Received(msg))
+          Future { handler.onMessage(msg) }
+        }
       }
 
-      private val ((actor, upgradeResponse), closed) =
+      private val ((actor, upgradeResponse), _) =
         outgoing
           .viaMat(flow)(Keep.both)
           .toMat(incoming)(Keep.both)

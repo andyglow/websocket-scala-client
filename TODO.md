@@ -1,15 +1,17 @@
 # TODO
-- [x] add Avro4s tests
+- [ ] add Avro4s tests
 - [x] refactoring
   - [x] jdk backend
   - [x] netty backend
   - [x] akka backend
   - [x] pekko backend
-- [ ] add async-http-client backend https://www.baeldung.com/async-http-client-websockets
-- [ ] add okhttp backend https://github.com/square/okhttp/blob/master/samples/guide/src/main/java/okhttp3/recipes/WebSocketEcho.java
-- [ ] add armeria backend https://javadoc.io/doc/com.linecorp.armeria/armeria-javadoc/latest/com/linecorp/armeria/client/websocket/WebSocketClient.html
-- [ ] add zio-http backend
-- [ ] add protobuf serde https://scalapb.github.io/docs/generated-code
-- [ ] add json serdes (circe, play-json, spray-json, etc)
+- [ ] add tests for unhandled messaged handler
+- [ ] add tests for test failure handler
+- [ ] add Async-http-client backend https://www.baeldung.com/async-http-client-websockets
+- [ ] add Okhttp backend https://github.com/square/okhttp/blob/master/samples/guide/src/main/java/okhttp3/recipes/WebSocketEcho.java
+- [ ] add Armeria backend https://javadoc.io/doc/com.linecorp.armeria/armeria-javadoc/latest/com/linecorp/armeria/client/websocket/WebSocketClient.html
+- [ ] add Zio-http backend
+- [ ] add Protobuf serde https://scalapb.github.io/docs/generated-code
+- [ ] add json serdes (Circe, Play-json, Spray-json, [Borer](https://github.com/sirthias/borer), etc)
 - [ ] consider ci-release https://eed3si9n.com/auto-publish-sbt-plugin-from-github-actions/
 - [ ] documentation. consider taking a look at how it's done in https://github.com/tersesystems/blindsight

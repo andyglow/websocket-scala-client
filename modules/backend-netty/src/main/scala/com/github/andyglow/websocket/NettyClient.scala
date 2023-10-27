@@ -9,20 +9,13 @@ import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx._
 import io.netty.handler.logging.LoggingHandler
-import io.netty.util
 import io.netty.util.CharsetUtil
-import io.netty.util.concurrent.GenericFutureListener
-import java.nio.charset.StandardCharsets
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
-import org.slf4j.LoggerFactory
-import org.slf4j.MDC
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.stm._
-import scala.util.Random
 import scala.util.control.NonFatal
 
 // TODO: re-work without using STM. We should be able to get it done relying on

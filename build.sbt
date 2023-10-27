@@ -1,93 +1,27 @@
-import CustomGithubActions.*
-import CustomGithubActions.aggregateCC
-import CustomGithubActions.generateCC
-import CustomGithubActions.uploadCC
 import Dependencies.*
-import ReleaseTransformations.*
 import ScalaVersions.*
-import java.net.URL
+import commandmatrix.Dimension
 import sbt.*
-import sbt.Defaults.*
 import sbt.Keys.*
-import sbt.librarymanagement.CrossVersion.PartialVersion
-import xerial.sbt.Sonatype.*
+import sbt.internal.{ProjectMatrix, ProjectMatrixReference}
 
 ThisBuild / scalaVersion := scala211
-//// https://github.com/xerial/sbt-sonatype/issues/71
-//ThisBuild / publishTo  := sonatypePublishTo.value
-ThisBuild / githubWorkflowTargetPaths           := Paths.Ignore(List("**.md"))
-ThisBuild / githubWorkflowScalaVersions         := Seq(scala211, scala212, scala213, scala3)
-ThisBuild / githubWorkflowPublishTargetBranches := Seq()
-ThisBuild / githubWorkflowJavaVersions          := Seq(JavaSpec.temurin("11"), JavaSpec.temurin("17"))
-ThisBuild / githubWorkflowBuildPostamble        := Seq(generateCC, aggregateCC, uploadCC)
 
-def specificFolder(base: File, suffix: String): Seq[File] = Seq(base / "main" / s"scala-$suffix")
-
-lazy val commons = Seq(
-  organization     := "com.github.andyglow",
-  homepage         := Some(new URL("http://github.com/andyglow/websocket-scala-client")),
-  startYear        := Some(2019),
-  organizationName := "andyglow",
-  scalacOptions    := CompilerOptions(scalaVersion.value),
-  Compile / doc / scalacOptions ++= Seq("-groups", "-implicits", "-no-link-warnings"),
-  licenses               := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
-  sonatypeProfileName    := "com.github.andyglow",
-  publishMavenStyle      := true,
-  sonatypeProjectHosting := Some(GitHubHosting("andyglow", "websocket-scala-client", "andyglow@gmail.com")),
-  scmInfo := Some(
-    ScmInfo(
-      url("https://github.com/andyglow/websocket-scala-client"),
-      "scm:git@github.com:andyglow/websocket-scala-client.git"
-    )
-  ),
-  developers := List(
-    Developer(
-      id = "andyglow",
-      name = "Andriy Onyshchuk",
-      email = "andyglow@gmail.com",
-      url = url("https://ua.linkedin.com/in/andyglow")
-    )
-  ),
-  releaseCrossBuild             := true,
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-  releaseProcess := Seq[ReleaseStep](
-    checkSnapshotDependencies,
-    inquireVersions,
-    runClean,
-    runTest,
-    setReleaseVersion,
-    commitReleaseVersion,
-    tagRelease,
-    ReleaseStep(action = Command.process("publishSigned", _), enableCrossBuild = true),
-    setNextVersion,
-    commitNextVersion,
-    ReleaseStep(action = Command.process("sonatypeReleaseAll", _), enableCrossBuild = true),
-    pushChanges
-  ),
-  Compile / unmanagedSourceDirectories ++= {
-    CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 11)) => Nil
-      case _             => specificFolder(sourceDirectory.value, "2.11+")
-    }
-  },
-  Test / unmanagedSourceDirectories ++= {
-    CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 11)) => Nil
-      case _             => specificFolder(sourceDirectory.value, "2.11+")
-    }
-  },
-  libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest"    % "3.2.17" % Test,
-    "org.mockito"    % "mockito-core" % "5.6.0"  % Test
-  )
+ThisBuild / libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest"    % "3.2.17" % Test,
+  "org.mockito"    % "mockito-core" % "5.6.0"  % Test
 )
 
-resolvers ++= Seq("snapshots", "releases").flatMap(Resolver.sonatypeOssRepos)
+// format: off
+/** ---------------------
+  * Modules
+  * -------
+  */
+// format: on
 
 lazy val api = (projectMatrix in file("modules/api"))
   .dependsOn(simpleNettyEchoWebsocketServer % Test)
   .settings(
-    commons,
     name := "websocket-api"
   )
   .jvmPlatform(scalaVersions = allScalaVersions())
@@ -95,7 +29,6 @@ lazy val api = (projectMatrix in file("modules/api"))
 lazy val backendNetty = (projectMatrix in file("modules/backend-netty"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
-    commons,
     name := "websocket-backend-netty",
     libraryDependencies ++= Seq(
       nettyAll,
@@ -109,19 +42,18 @@ lazy val backendNetty = (projectMatrix in file("modules/backend-netty"))
 lazy val backendAkka = (projectMatrix in file("modules/backend-akka"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
-    commons,
     name := "websocket-backend-akka",
     libraryDependencies ++= Seq(
       akkaHttp(scalaVersion.value).cross(CrossVersion.binary),
       akkaStream(scalaVersion.value).cross(CrossVersion.binary)
-    )
+    ),
+    includeScala211PlusFolders
   )
   .jvmPlatform(scalaVersions = allScalaVersions())
 
 lazy val backendPekko = (projectMatrix in file("modules/backend-pekko"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
-    commons,
     name := "websocket-backend-pekko",
     libraryDependencies ++= Seq(
       pekkoHttp,
@@ -130,13 +62,11 @@ lazy val backendPekko = (projectMatrix in file("modules/backend-pekko"))
   )
   .jvmPlatform(scalaVersions = allScalaVersions(_ == scala211))
 
-lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk9"))
+lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk-http-client"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
-    commons,
-    name := "websocket-backend-jdk9",
+    name := "websocket-backend-jdk-http-client",
     libraryDependencies ++= Seq(
-      scalaStm,
       slf4jApi
     )
   )
@@ -145,7 +75,6 @@ lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk9"))
 lazy val serdeAvro4s = (projectMatrix in file("modules/serde-avro4s"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
-    commons,
     name := "websocket-serde-avro4s",
     libraryDependencies ++= Seq(
       avro4s(scalaVersion.value)
@@ -157,7 +86,6 @@ lazy val serdeAvro4s = (projectMatrix in file("modules/serde-avro4s"))
 //       scala versions as it only needed in tests
 lazy val simpleNettyEchoWebsocketServer = (projectMatrix in file("modules/simple-netty-websocket-echo-server"))
   .settings(
-    commons,
     name := "simple-netty-websocket-echo-server",
     libraryDependencies ++= Seq(
       nettyAll,
@@ -167,11 +95,82 @@ lazy val simpleNettyEchoWebsocketServer = (projectMatrix in file("modules/simple
       bcCore,
       bcPkix
     ),
-    publish := false
+    disablePublishing
   )
   .jvmPlatform(scalaVersions = allScalaVersions())
 
+// format: off
+/** ---------------------
+  * Root
+  * ----
+  */
+// format: on
+
+lazy val matrices = Seq(api, backendNetty, backendJdkHttpClient, backendAkka, backendPekko)
 lazy val root = (project in file("."))
   .aggregate(
-    api.projectRefs ++ backendNetty.projectRefs ++ backendJdkHttpClient.projectRefs ++ backendAkka.projectRefs ++ backendPekko.projectRefs: _*
+    matrices.flatMap(_.projectRefs): _*
   )
+  .settings(
+    name := "websocket-root"
+  )
+  .settings(disablePublishing)
+
+// format: off
+/** ---------------------
+  * Custom Commands
+  * ---------------
+  */
+// format: on
+
+inThisBuild(
+  Seq(
+    // sbt-commandmatrix
+    commands ++= CrossCommand.all(
+      Seq("clean", "test", "coverage", "coverageAggregate"),
+      matrices = matrices,
+      dimensions = Seq(
+        Dimension.scala("2.13", fullFor3 = true),
+        Dimension.platform()
+      )
+    )
+  )
+)
+
+// format: off
+/** ---------------------
+  * Utilities
+  * ---------
+  */
+// format: on
+
+def specificFolder(base: File, suffix: String): Seq[File] = Seq(base / "main" / s"scala-$suffix")
+
+lazy val projectsToAggregate: String => List[ProjectMatrix] = {
+  val projects = List(api, backendNetty, backendJdkHttpClient, backendAkka)
+  scalaVersion => CrossVersion.partialVersion(scalaVersion) match {
+    case Some((2, 11)) => projects :+ backendPekko
+    case _ => projects
+  }
+}
+
+val disablePublishing = Seq[Setting[_]](
+  publishArtifact := false,
+  publish / skip  := true
+)
+
+val includeScala211PlusFolders = Seq(
+  Compile / doc / scalacOptions ++= Seq("-groups", "-implicits", "-no-link-warnings"),
+  Compile / unmanagedSourceDirectories ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 11)) => Nil
+      case _             => specificFolder(sourceDirectory.value, "2.11+")
+    }
+  },
+  Test / unmanagedSourceDirectories ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 11)) => Nil
+      case _             => specificFolder(sourceDirectory.value, "2.11+")
+    }
+  }
+)

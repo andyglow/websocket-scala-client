@@ -6,12 +6,9 @@ import java.nio.ByteBuffer
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
-import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
-import scala.util.Random
 
 trait JdkClient { this: JdkPlatform =>
 

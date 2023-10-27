@@ -52,7 +52,7 @@ trait AkkaClient extends AkkaImplicits { this: AkkaPlatform =>
         }
       }
 
-      private val ((actor, upgradeResponse), closed) =
+      private val ((actor, upgradeResponse), _) =
         outgoing
           .viaMat(flow)(Keep.both)
           .toMat(incoming)(Keep.both)
