@@ -1,6 +1,6 @@
 import sbt.librarymanagement.CrossVersion
 
-object CompilerOptions {
+object ScalaCompilerOptions {
 
   // inliner must be run with "clean; compile", it's not incremental
   // https://www.lightbend.com/blog/scala-inliner-optimizer

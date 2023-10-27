@@ -22,7 +22,8 @@ ThisBuild / libraryDependencies ++= Seq(
 lazy val api = (projectMatrix in file("modules/api"))
   .dependsOn(simpleNettyEchoWebsocketServer % Test)
   .settings(
-    name := "websocket-api"
+    name := "websocket-api",
+    scalacOptions := ScalaCompilerOptions(scalaVersion.value)
   )
   .jvmPlatform(scalaVersions = allScalaVersions())
 
@@ -30,6 +31,7 @@ lazy val backendNetty = (projectMatrix in file("modules/backend-netty"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-backend-netty",
+    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
     libraryDependencies ++= Seq(
       nettyAll,
       nettyHttp,
@@ -43,6 +45,7 @@ lazy val backendAkka = (projectMatrix in file("modules/backend-akka"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-backend-akka",
+    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
     libraryDependencies ++= Seq(
       akkaHttp(scalaVersion.value).cross(CrossVersion.binary),
       akkaStream(scalaVersion.value).cross(CrossVersion.binary)
@@ -55,6 +58,7 @@ lazy val backendPekko = (projectMatrix in file("modules/backend-pekko"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-backend-pekko",
+    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
     libraryDependencies ++= Seq(
       pekkoHttp,
       pekkoStream
@@ -66,6 +70,7 @@ lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk-http
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-backend-jdk-http-client",
+    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
     libraryDependencies ++= Seq(
       slf4jApi
     )
@@ -76,6 +81,7 @@ lazy val serdeAvro4s = (projectMatrix in file("modules/serde-avro4s"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-serde-avro4s",
+    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
     libraryDependencies ++= Seq(
       avro4s(scalaVersion.value)
     )
@@ -130,7 +136,7 @@ inThisBuild(
       Seq("clean", "test"),
       matrices = matrices,
       dimensions = Seq(
-        Dimension.scala("2.13", fullFor3 = true),
+        Dimension.scala("2.13", fullFor3 = false),
         Dimension.platform()
       )
     )
