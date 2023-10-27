@@ -1,4 +1,4 @@
-name: Update Dependency
+name: sbt-dependency-submission
 on:
   push:
     branches:

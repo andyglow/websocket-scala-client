@@ -6,7 +6,6 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
-import scala.language.implicitConversions
 import scala.util.Failure
 import scala.util.Random
 import scala.util.Success
