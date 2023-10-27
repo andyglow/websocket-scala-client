@@ -118,7 +118,7 @@ trait Platform {
     */
   def defaultOptions: Options
 
-  /** Create a new websocket client using specified [[address]] and [[options]].
+  /** Create a new websocket client using specified address and options.
     * @param address
     *   Websocket Server Address
     * @param options
@@ -169,9 +169,9 @@ trait Platform {
 
     /** Builder. Helps to create a [[WebsocketHandler]] instance based on severa; building blocks:
       *   - [[_onMessage]] handler
-      *   - optional [[_onUnhandledMessage]] handler
-      *   - optional [[_onFailure]] handler
-      *   - optional [[_onClose]] handler
+      *   - optional [[onUnhandled]] handler
+      *   - optional [[onFailure]] handler
+      *   - optional [[onClose]] handler
       *
       * Also useful in DSL form.
       */

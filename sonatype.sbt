@@ -23,10 +23,14 @@ ThisBuild / developers := List(
   )
 )
 
-// https://github.com/xerial/sbt-sonatype#buildsbt
-ThisBuild / publishTo := sonatypePublishToBundle.value
-
 resolvers ++= Seq("snapshots", "releases").flatMap(Resolver.sonatypeOssRepos)
 
 // use `.withRank(KeyRanks.Invisible)` to mute Unnecessary Warning
 (ThisBuild / publishMavenStyle).withRank(KeyRanks.Invisible) := true
+
+// https://github.com/xerial/sbt-sonatype#buildsbt
+// uses staging directory for release versions
+// and publishes directly to sonatype servers for snapshots
+// use `sonatypeBundleRelease` for releases
+// and `sonatypeReleaseAll` for snapshots
+ThisBuild / publishTo := sonatypePublishToBundle.value

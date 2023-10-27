@@ -3,9 +3,12 @@ import ScalaVersions.*
 import commandmatrix.Dimension
 import sbt.*
 import sbt.Keys.*
-import sbt.internal.{ProjectMatrix, ProjectMatrixReference}
+import sbt.internal.ProjectMatrix
+import sbt.internal.ProjectMatrixReference
 
 ThisBuild / scalaVersion := scala211
+
+ThisBuild / versionScheme := Some("early-semver")
 
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest"    % "3.2.17" % Test,
@@ -23,7 +26,7 @@ lazy val api = (projectMatrix in file("modules/api"))
   .dependsOn(simpleNettyEchoWebsocketServer % Test)
   .settings(
     name := "websocket-api",
-    scalacOptions := ScalaCompilerOptions(scalaVersion.value)
+    commonOptions
   )
   .jvmPlatform(scalaVersions = allScalaVersions())
 
@@ -31,7 +34,7 @@ lazy val backendNetty = (projectMatrix in file("modules/backend-netty"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-backend-netty",
-    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
+    commonOptions,
     libraryDependencies ++= Seq(
       nettyAll,
       nettyHttp,
@@ -45,7 +48,7 @@ lazy val backendAkka = (projectMatrix in file("modules/backend-akka"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-backend-akka",
-    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
+    commonOptions,
     libraryDependencies ++= Seq(
       akkaHttp(scalaVersion.value).cross(CrossVersion.binary),
       akkaStream(scalaVersion.value).cross(CrossVersion.binary)
@@ -58,7 +61,7 @@ lazy val backendPekko = (projectMatrix in file("modules/backend-pekko"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-backend-pekko",
-    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
+    commonOptions,
     libraryDependencies ++= Seq(
       pekkoHttp,
       pekkoStream
@@ -70,7 +73,7 @@ lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk-http
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-backend-jdk-http-client",
-    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
+    commonOptions,
     libraryDependencies ++= Seq(
       slf4jApi
     )
@@ -81,7 +84,7 @@ lazy val serdeAvro4s = (projectMatrix in file("modules/serde-avro4s"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
     name := "websocket-serde-avro4s",
-    scalacOptions := ScalaCompilerOptions(scalaVersion.value),
+    commonOptions,
     libraryDependencies ++= Seq(
       avro4s(scalaVersion.value)
     )
@@ -112,19 +115,20 @@ lazy val simpleNettyEchoWebsocketServer = (projectMatrix in file("modules/simple
   */
 // format: on
 
-lazy val matrices = Seq(api, backendNetty, backendJdkHttpClient, backendAkka, backendPekko)
+lazy val matrices = Seq(api, backendNetty, backendJdkHttpClient, backendAkka, backendPekko, serdeAvro4s)
 lazy val root = (project in file("."))
   .aggregate(
     matrices.flatMap(_.projectRefs): _*
   )
   .settings(
-    name := "websocket-root"
+    name := "websocket-root",
+    disablePublishing,
   )
-  .settings(disablePublishing)
+  .settings()
 
 // format: off
 /** ---------------------
-  * Custom Commands
+  * Custom Matrix Commands
   * ---------------
   */
 // format: on
@@ -133,7 +137,11 @@ inThisBuild(
   Seq(
     // sbt-commandmatrix
     commands ++= CrossCommand.all(
-      Seq("clean", "test"),
+      Seq(
+        "clean",
+        "test",
+        "publishSigned"
+      ),
       matrices = matrices,
       dimensions = Seq(
         Dimension.scala("2.13", fullFor3 = false),
@@ -142,6 +150,8 @@ inThisBuild(
     )
   )
 )
+val scalaVersionDimension = Seq("2_11", "2_12", "2_13", "3_3")
+addCommandAlias("publishMatrix", scalaVersionDimension.map(v => s";publishSigned-$v-jvm").mkString)
 
 // format: off
 /** ---------------------
@@ -154,10 +164,11 @@ def specificFolder(base: File, suffix: String): Seq[File] = Seq(base / "main" / 
 
 lazy val projectsToAggregate: String => List[ProjectMatrix] = {
   val projects = List(api, backendNetty, backendJdkHttpClient, backendAkka)
-  scalaVersion => CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, 11)) => projects :+ backendPekko
-    case _ => projects
-  }
+  scalaVersion =>
+    CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, 11)) => projects :+ backendPekko
+      case _             => projects
+    }
 }
 
 val disablePublishing = Seq[Setting[_]](
@@ -165,8 +176,7 @@ val disablePublishing = Seq[Setting[_]](
   publish / skip  := true
 )
 
-val includeScala211PlusFolders = Seq(
-  Compile / doc / scalacOptions ++= Seq("-groups", "-implicits", "-no-link-warnings"),
+val includeScala211PlusFolders = Seq[Setting[_]](
   Compile / unmanagedSourceDirectories ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 11)) => Nil
@@ -178,5 +188,10 @@ val includeScala211PlusFolders = Seq(
       case Some((2, 11)) => Nil
       case _             => specificFolder(sourceDirectory.value, "2.11+")
     }
-  }
+  },
+)
+
+lazy val commonOptions = Seq[Setting[_]](
+  Compile / doc / scalacOptions ++= Seq("-groups", "-implicits", "-no-link-warnings"),
+  scalacOptions := ScalaCompilerOptions(scalaVersion.value),
 )
