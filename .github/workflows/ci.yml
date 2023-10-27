@@ -42,7 +42,7 @@ jobs:
           cache: sbt
 
       - name: Compile and Run Tests
-        if: ! (matrix.scala == '2_13' && matrix.java == 21)
+        if: matrix.scala != '2_13' || matrix.java != 21
         run: sbt test-$VERSION_SPEC
 
       - name: Compile, Run Tests and Generate Code Coverage Reports (2.13 only)
