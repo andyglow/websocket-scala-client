@@ -8,8 +8,8 @@ class EncodeHexSpec extends AnyFunSuite {
   implicit def i_to_b(x: Int): Byte = x.toByte
 
   test("atoms") {
-    forAll { b: Byte =>
-      EncodeHex(Array(b)) shouldBe String.format("%02X", b);
+    forAll { (b: Byte) =>
+      EncodeHex(b) shouldBe "%02X".format(b);
     }
   }
 
