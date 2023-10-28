@@ -14,7 +14,7 @@ class ServerAddressSpec extends AnyFunSuite {
     Some("/path"),
     Map(
       "foo" -> "bar",
-      "bar" -> "baz",
+      "bar" -> "baz"
     )
   )
 
@@ -42,7 +42,7 @@ class ServerAddressSpec extends AnyFunSuite {
     address.path.value shouldBe "/path"
     address.query shouldBe Map(
       "foo" -> "bar",
-      "bar" -> "baz",
+      "bar" -> "baz"
     )
   }
 }
