@@ -1,9 +1,5 @@
 package com.github.andyglow.websocket.serde
 
-import com.sksamuel.avro4s.Decoder
-import com.sksamuel.avro4s.Encoder
-import com.sksamuel.avro4s.SchemaFor
-
 object Models {
 
   case class NestedTestModel[T](

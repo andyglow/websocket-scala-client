@@ -1,12 +1,11 @@
 package com.github.andyglow.websocket.serde
 
+import com.github.andyglow.utils.EncodeHex
 import com.github.andyglow.websocket.Platform
 import com.github.andyglow.websocket.ServerAddress
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 class TestPlatform extends Platform {
 
@@ -18,6 +17,7 @@ class TestPlatform extends Platform {
         case Binary(other) => java.util.Arrays.equals(value, other)
         case _             => false
       }
+      override def toString: String = s"Binary(${EncodeHex(value)})"
     }
     case object Pong extends Msg
   }
@@ -32,7 +32,6 @@ class TestPlatform extends Platform {
   override protected def cast[T](x: MessageType, ifBinary: Binary => T, ifText: Text => T, ifPong: => T): T = x match {
     case x: Binary => ifBinary(x)
     case x: Text   => ifText(x)
-    case x: Pong   => ifPong
     case _         => throw new IllegalArgumentException()
   }
 
@@ -50,7 +49,9 @@ class TestPlatform extends Platform {
   }
 
   override type Options = CommonOptions
-  override def defaultOptions: CommonOptions = new CommonOptions {}
+  override def defaultOptions: CommonOptions = new CommonOptions {
+    override def withTracer(tracer: Tracer): CommonOptions = this
+  }
 
   def newClient(): WebsocketClient = newClient(null, null)
   override def newClient(address: ServerAddress, options: Options = defaultOptions): WebsocketClient =
@@ -58,18 +59,17 @@ class TestPlatform extends Platform {
       override def open(handler: WebsocketHandler): Websocket = new Websocket {
         override protected def send(x: Msg): Unit =
           if (handler.onMessage.isDefinedAt(x)) handler.onMessage(x) else handler.onUnhandledMessage(x)
-        override def ping(): Unit = send(Msg.Pong)
-        override def close()(implicit ec: ExecutionContext): Future[Unit] = {
-          Future { handler.onClose(()) }
-        }
+        override def ping(): Unit  = send(Msg.Pong)
+        override def close(): Unit = handler.onClose(())
       }
-      override def shutdownSync(): Unit                                       = ()
-      override def shutdownAsync(implicit ec: ExecutionContext): Future[Unit] = Future.successful(())
-      override implicit val ic: Unit                                          = ()
+      override def shutdown(): Unit  = ()
+      override implicit val ic: Unit = ()
     }
 
   class MockedWebsocketHandler extends WebsocketHandler {
     val handledMessages: ListBuffer[Msg] = ListBuffer.empty
     override def onMessage: OnMessage    = { case x => handledMessages.append(x) }
   }
+
+  override protected def stringify(x: Msg): String = x.toString
 }
