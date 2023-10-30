@@ -1,10 +1,8 @@
-package com.github.andyglow.websocket.serde
+package com.github.andyglow.websocket
 
 import com.github.andyglow.utils.EncodeHex
-import com.github.andyglow.websocket.Platform
-import com.github.andyglow.websocket.ServerAddress
-import java.nio.ByteBuffer
-import java.nio.CharBuffer
+
+import java.nio.{ByteBuffer, CharBuffer}
 import scala.collection.mutable.ListBuffer
 
 class TestPlatform extends Platform {

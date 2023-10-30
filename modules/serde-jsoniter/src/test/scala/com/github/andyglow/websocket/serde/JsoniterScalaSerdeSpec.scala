@@ -1,16 +1,18 @@
 package com.github.andyglow.websocket.serde
 
+import com.github.andyglow.websocket.TestModels._
 import com.github.andyglow.websocket.TestPlatform
-import org.scalatest.funsuite.AnyFunSuite
+import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
 
-class Avro4sSerdeJsonSpec extends AnyFunSuite {
-  import Models._
+class JsoniterScalaSerdeSpec extends AnyFunSuite {
+  import JsoniterScalaSerdeSpec._
   implicit val platform: TestPlatform = new TestPlatform
   import platform._
 
-  val serde: Avro4SSerde = new Avro4SSerde
-  import serde.json._
+  val serde: JsoniterScalaSerde = new JsoniterScalaSerde
+  import serde._
 
   val cli = platform.newClient()
   import cli._
@@ -54,4 +56,16 @@ class Avro4sSerdeJsonSpec extends AnyFunSuite {
       "{\"id\":\"id\",\"count\":16,\"series\":[12.0,11.4,0.123],\"nested\":{\"id\":\"x501\",\"value\":501,\"active\":true},\"seriesOfNested\":[{\"id\":\"pi\",\"value\":3.14}]}"
     )
   }
+}
+
+object JsoniterScalaSerdeSpec {
+  import com.github.plokhotnyuk.jsoniter_scala.macros._
+
+  implicit val intCodec: JsonValueCodec[Int] = JsonCodecMaker.make
+  implicit val stringCodec: JsonValueCodec[String] = JsonCodecMaker.make
+  implicit val doubleCodec: JsonValueCodec[Double] = JsonCodecMaker.make
+  implicit val booleanCodec: JsonValueCodec[Boolean] = JsonCodecMaker.make
+  implicit val testModelCodec: JsonValueCodec[TestModel] = JsonCodecMaker.make
+  implicit val nestedEntryCodec: JsonValueCodec[NestedEntry] = JsonCodecMaker.make
+  implicit def nestedTestModel[T: JsonValueCodec]: JsonValueCodec[NestedTestModel[T]] = JsonCodecMaker.make
 }

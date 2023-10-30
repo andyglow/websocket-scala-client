@@ -54,6 +54,25 @@ object Dependencies {
     }
   }
 
+  object jsoniterScala {
+    trait jsoniterScala {
+      def core: ModuleID
+      def macros: ModuleID
+    }
+
+    def apply(scalaVersion: String): jsoniterScala = {
+      val v = CrossVersion.partialVersion(scalaVersion) match {
+        case Some((2, 11)) => "2.13.3.2"
+        case _             => "2.24.4"
+      }
+
+      new jsoniterScala {
+        override val core = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % v
+        override val macros = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % v
+      }
+    }
+  }
+
   object akkaHttp {
     def apply(scalaVersion: String, oss: Boolean = false): ModuleID = {
       val v = CrossVersion.partialVersion(scalaVersion) match {

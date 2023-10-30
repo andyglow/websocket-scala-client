@@ -7,11 +7,11 @@ import sbt.Keys.*
 import sbt.internal.ProjectMatrix
 
 
-ThisBuild / scalaVersion := scala3
+ThisBuild / scalaVersion := scala213
 
 // {{{ Configure Intellij Idea
 // Scala Version in IDE
-val intellijIdeaScalaVersion = IntellijIdeaScalaVersion(scala3)
+val intellijIdeaScalaVersion = IntellijIdeaScalaVersion(scala213)
 // ???
 Global / excludeLintKeys += ideSkipProject
 // }}}
@@ -91,7 +91,7 @@ lazy val backendPekko = (projectMatrix in file("modules/backend-pekko"))
       pekkoStream
     )
   )
-  .jvmOnly(intellijIdeaScalaVersion, excluding = { case scala211 => })
+  .jvmOnly(intellijIdeaScalaVersion, excluding = { case `scala211` => })
 
 
 lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk-http-client"))
@@ -115,6 +115,18 @@ lazy val serdeAvro4s = (projectMatrix in file("modules/serde-avro4s"))
     )
   )
   .jvmOnly(intellijIdeaScalaVersion, excluding = { case `scala211` | `scala3` => })
+
+lazy val serdeJsoniterScala = (projectMatrix in file("modules/serde-jsoniter"))
+  .dependsOn(api % "test->test;compile->compile")
+  .settings(
+    name := "websocket-serde-avro4s",
+    commonOptions,
+    libraryDependencies ++= Seq(
+      jsoniterScala(scalaVersion.value).core % Compile,
+      jsoniterScala(scalaVersion.value).macros % Test,
+    )
+  )
+  .jvmOnly(intellijIdeaScalaVersion)
 
 // TODO: can be written entirely in the lowest scala version or in java so we don't need to rebuild it for other
 //       scala versions as it only needed in tests
@@ -140,7 +152,15 @@ lazy val simpleNettyEchoWebsocketServer = (projectMatrix in file("modules/simple
   */
 // format: on
 
-lazy val matrices = Seq(api, backendNetty, backendJdkHttpClient, backendAkka, backendPekko, serdeAvro4s)
+lazy val matrices = Seq(
+  api,
+  backendNetty,
+  backendJdkHttpClient,
+  backendAkka,
+  backendPekko,
+  serdeAvro4s,
+  serdeJsoniterScala
+)
 lazy val root = (project in file("."))
   .aggregate(
     matrices.flatMap(_.projectRefs): _*

@@ -14,6 +14,6 @@
 - [ ] add Jetty backend https://github.com/jetty-project/embedded-jetty-websocket-examples/blob/10.0.x/native-jetty-websocket-example/src/main/java/org/eclipse/jetty/demo/EventClient.java
 - [ ] add Zio-http backend
 - [ ] add Protobuf serde https://scalapb.github.io/docs/generated-code
-- [ ] add json serdes (Circe, Play-json, Spray-json, [Borer](https://github.com/sirthias/borer), etc)
+- [ ] add json serdes (Circe, Play-json, Spray-json, [Borer](https://github.com/sirthias/borer), Jsoniter-Scala, etc)
 - [ ] consider ci-release https://eed3si9n.com/auto-publish-sbt-plugin-from-github-actions/
 - [ ] documentation. consider taking a look at how it's done in https://github.com/tersesystems/blindsight
