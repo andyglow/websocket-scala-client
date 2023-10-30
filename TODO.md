@@ -1,5 +1,6 @@
 # TODO
-- [ ] add Avro4s tests
+- [x] add Avro4s tests
+  - [ ] finish scala3 adoption
 - [x] refactoring
   - [x] jdk backend
   - [x] netty backend
@@ -8,7 +9,7 @@
 - [ ] add tests for unhandled messaged handler
 - [ ] add tests for test failure handler
 - [ ] add Async-http-client backend https://www.baeldung.com/async-http-client-websockets
-- [ ] add Okhttp backend https://github.com/square/okhttp/blob/master/samples/guide/src/main/java/okhttp3/recipes/WebSocketEcho.java
+- [ ] add OkHttp backend https://github.com/square/okhttp/blob/master/samples/guide/src/main/java/okhttp3/recipes/WebSocketEcho.java
 - [ ] add Armeria backend https://javadoc.io/doc/com.linecorp.armeria/armeria-javadoc/latest/com/linecorp/armeria/client/websocket/WebSocketClient.html
 - [ ] add Jetty backend https://github.com/jetty-project/embedded-jetty-websocket-examples/blob/10.0.x/native-jetty-websocket-example/src/main/java/org/eclipse/jetty/demo/EventClient.java
 - [ ] add Zio-http backend

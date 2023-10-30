@@ -4,6 +4,6 @@ object ScalaVersions {
   val scala213 = "2.13.12"
   val scala3   = "3.3.1"
 
-  def allScalaVersions(excluding: String => Boolean = _ => false): Seq[String] =
-    Seq(scala211, scala212, scala213, scala3).filterNot(excluding)
+  def allScalaVersions(excluding: String => Boolean = _ => false): List[String] =
+    List(scala211, scala212, scala213, scala3).filterNot(excluding)
 }

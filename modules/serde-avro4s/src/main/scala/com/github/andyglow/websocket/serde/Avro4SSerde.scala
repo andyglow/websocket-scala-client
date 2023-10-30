@@ -1,6 +1,5 @@
 package com.github.andyglow.websocket.serde
 
-import com.github.andyglow.websocket.Platform
 import com.sksamuel.avro4s.AvroInputStream
 import com.sksamuel.avro4s.AvroOutputStream
 import com.sksamuel.avro4s.Decoder
@@ -8,62 +7,33 @@ import com.sksamuel.avro4s.Encoder
 import com.sksamuel.avro4s.SchemaFor
 import java.io.ByteArrayOutputStream
 
-class Avro4SSerde {
+private[serde] object Avro4SHelper {
   import java.nio.charset.StandardCharsets.UTF_8
 
-  object binary {
-
-    implicit def binaryAvro4sMessageAdapter[T](implicit
-      p: Platform,
-      enc: Encoder[T],
-      dec: Decoder[T],
-      sf: SchemaFor[T]
-    ): p.MessageAdapter[T] =
-      new p.MessageAdapter[T] {
-        override type F = p.Binary
-
-        override def toMessage(x: T)(implicit ic: p.InternalContext): p.Binary = {
-          val os  = new ByteArrayOutputStream
-          val out = AvroOutputStream.binary[T].to(os).build()
-          try out.write(Seq(x))
-          finally out.close()
-          p.implicits.ByteArrayMessageAdapter.toMessage(os.toByteArray)
-        }
-
-        override def fromMessage(x: p.Binary)(implicit ic: p.InternalContext): T = {
-          val bytes = p.implicits.ByteArrayMessageAdapter.fromMessage(x)
-          val in    = AvroInputStream.binary[T].from(bytes).build(sf.schema)
-          in.iterator.next()
-        }
-      }
+  def messageToByteArray[T](x: T)(implicit enc: Encoder[T], sf: SchemaFor[T]): Array[Byte] = {
+    val os  = new ByteArrayOutputStream
+    val out = AvroOutputStream.binary[T].to(os).build()
+    try out.write(Seq(x))
+    finally out.close()
+    os.toByteArray
   }
 
-  object json {
+  def byteArrayToMessage[T](bytes: Array[Byte])(implicit enc: Decoder[T], sf: SchemaFor[T]): T = {
+    val in = AvroInputStream.binary[T].from(bytes).build(sf.schema)
+    in.iterator.next()
+  }
 
-    implicit def jsonAvro4sMessageAdapter[T](implicit
-      p: Platform,
-      enc: Encoder[T],
-      dec: Decoder[T],
-      sf: SchemaFor[T]
-    ): p.MessageAdapter[T] =
-      new p.MessageAdapter[T] {
-        override type F = p.Text
 
-        override def toMessage(x: T)(implicit ic: p.InternalContext): p.Text = {
-          val os  = new ByteArrayOutputStream
-          val out = AvroOutputStream.json[T].to(os).build()
-//          val out = AvroOutputStream.json(enc.withSchema(sf)).to(os).build()
-          try out.write(Seq(x))
-          finally out.close()
-          p.implicits.StringMessageAdapter.toMessage(new String(os.toByteArray, UTF_8))
-        }
+  def messageToJsonString[T](x: T)(implicit enc: Encoder[T], sf: SchemaFor[T]): String = {
+    val os  = new ByteArrayOutputStream
+    val out = AvroOutputStream.json[T].to(os).build()
+    try out.write(Seq(x))
+    finally out.close()
+    new String(os.toByteArray, UTF_8)
+  }
 
-        override def fromMessage(x: p.Text)(implicit ic: p.InternalContext): T = {
-          val text = p.implicits.StringMessageAdapter.fromMessage(x)
-//          val in = AvroInputStream.json(dec.withSchema(sf)).from(text).build(sf.schema)
-          val in = AvroInputStream.json[T].from(text).build(sf.schema)
-          in.iterator.next()
-        }
-      }
+  def jsonStringToMessage[T](json: String)(implicit enc: Decoder[T], sf: SchemaFor[T]): T = {
+    val in = AvroInputStream.json[T].from(json).build(sf.schema)
+    in.iterator.next()
   }
 }

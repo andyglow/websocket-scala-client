@@ -1,11 +1,20 @@
 import Dependencies.*
 import ScalaVersions.*
+import IntellijIdeaScalaVersion.*
 import commandmatrix.Dimension
 import sbt.*
 import sbt.Keys.*
 import sbt.internal.ProjectMatrix
 
-ThisBuild / scalaVersion := scala211
+
+ThisBuild / scalaVersion := scala3
+
+// {{{ Configure Intellij Idea
+// Scala Version in IDE
+val intellijIdeaScalaVersion = IntellijIdeaScalaVersion(scala3)
+// ???
+Global / excludeLintKeys += ideSkipProject
+// }}}
 
 /**
   * Early Semver
@@ -42,7 +51,8 @@ lazy val api = (projectMatrix in file("modules/api"))
     commonOptions,
     libraryDependencies += scalatestplus(scalaVersion.value),
   )
-  .jvmPlatform(scalaVersions = allScalaVersions())
+  .jvmOnly(intellijIdeaScalaVersion)
+
 
 lazy val backendNetty = (projectMatrix in file("modules/backend-netty"))
   .dependsOn(api % "test->test;compile->compile")
@@ -56,7 +66,7 @@ lazy val backendNetty = (projectMatrix in file("modules/backend-netty"))
       slf4jApi
     )
   )
-  .jvmPlatform(scalaVersions = allScalaVersions())
+  .jvmOnly(intellijIdeaScalaVersion)
 
 lazy val backendAkka = (projectMatrix in file("modules/backend-akka"))
   .dependsOn(api % "test->test;compile->compile")
@@ -69,7 +79,7 @@ lazy val backendAkka = (projectMatrix in file("modules/backend-akka"))
     ),
     includeScala211PlusFolders
   )
-  .jvmPlatform(scalaVersions = allScalaVersions())
+  .jvmOnly(intellijIdeaScalaVersion)
 
 lazy val backendPekko = (projectMatrix in file("modules/backend-pekko"))
   .dependsOn(api % "test->test;compile->compile")
@@ -81,7 +91,8 @@ lazy val backendPekko = (projectMatrix in file("modules/backend-pekko"))
       pekkoStream
     )
   )
-  .jvmPlatform(scalaVersions = allScalaVersions(_ == scala211))
+  .jvmOnly(intellijIdeaScalaVersion, excluding = { case scala211 => })
+
 
 lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk-http-client"))
   .dependsOn(api % "test->test;compile->compile")
@@ -92,7 +103,7 @@ lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk-http
       slf4jApi
     )
   )
-  .jvmPlatform(scalaVersions = allScalaVersions())
+  .jvmOnly(intellijIdeaScalaVersion)
 
 lazy val serdeAvro4s = (projectMatrix in file("modules/serde-avro4s"))
   .dependsOn(api % "test->test;compile->compile")
@@ -103,7 +114,7 @@ lazy val serdeAvro4s = (projectMatrix in file("modules/serde-avro4s"))
       avro4s(scalaVersion.value)
     )
   )
-  .jvmPlatform(scalaVersions = allScalaVersions(_ == scala211))
+  .jvmOnly(intellijIdeaScalaVersion, excluding = { case `scala211` | `scala3` => })
 
 // TODO: can be written entirely in the lowest scala version or in java so we don't need to rebuild it for other
 //       scala versions as it only needed in tests

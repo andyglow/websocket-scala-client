@@ -61,7 +61,9 @@ object ScalaCompilerOptions {
   ) ++ optimizeInline
 
   private val opts300 = Seq(
+    "-language:higherKinds",
     "-language:implicitConversions",
+    "-explain",
     "-release", "8"
   )
 
