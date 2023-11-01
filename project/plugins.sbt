@@ -30,4 +30,4 @@ addSbtPlugin("com.indoorvivants" % "sbt-commandmatrix" % "0.0.5")
 
 // https://github.com/JetBrains/sbt-ide-settings
 // see why here: https://stackoverflow.com/questions/74340971/how-to-configure-intellij-to-manage-different-scala-versions
-addSbtPlugin("org.jetbrains.scala" % "sbt-ide-settings" % "1.1.1")
+addSbtPlugin("org.jetbrains.scala" % "sbt-ide-settings" % "1.1.2")
