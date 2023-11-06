@@ -13,7 +13,7 @@ object Dependencies {
   val log4jVersion = "2.21.0"
 
   val scalatestVersion = "3.2.17"
-  val mockitoVersion = "5.6.0"
+  val mockitoVersion   = "5.7.0"
 
   val nettyAll    = "io.netty"                 % "netty-all"        % nettyVersion       % Compile
   val nettyHttp   = "io.netty"                 % "netty-codec-http" % nettyVersion       % Compile
@@ -27,8 +27,8 @@ object Dependencies {
   val pekkoHttp   = "org.apache.pekko"        %% "pekko-http"       % pekkoHttpVersion   % Compile
   val pekkoStream = "org.apache.pekko"        %% "pekko-stream"     % pekkoStreamVersion % Compile
 
-  val scalatest   = "org.scalatest"           %% "scalatest"        % scalatestVersion   % Test
-  val mockito     = "org.mockito"              % "mockito-core"     % mockitoVersion     % Test
+  val scalatest = "org.scalatest" %% "scalatest"    % scalatestVersion % Test
+  val mockito   = "org.mockito"    % "mockito-core" % mockitoVersion   % Test
 
   object scalatestplus {
 
@@ -38,7 +38,7 @@ object Dependencies {
         case _             => ("scalacheck-1-17", "3.2.17.0")
       }
 
-      "org.scalatestplus" %% a  % v
+      "org.scalatestplus" %% a % v
     }
   }
 
@@ -67,7 +67,7 @@ object Dependencies {
       }
 
       new jsoniterScala {
-        override val core = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % v
+        override val core   = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"   % v
         override val macros = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % v
       }
     }
