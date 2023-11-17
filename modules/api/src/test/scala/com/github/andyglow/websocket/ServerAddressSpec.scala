@@ -1,9 +1,9 @@
 package com.github.andyglow.websocket
 
-import org.scalatest.matchers.should.Matchers._
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.OptionValues._
 import java.net.URI
+import org.scalatest.OptionValues._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 class ServerAddressSpec extends AnyFunSuite {
 

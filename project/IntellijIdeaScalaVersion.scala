@@ -1,5 +1,6 @@
 import ScalaVersions.allScalaVersions
-import commandmatrix.extra.{MatrixAction, ProjectMatrixExtraOps}
+import commandmatrix.extra.MatrixAction
+import commandmatrix.extra.ProjectMatrixExtraOps
 import sbt.Keys.scalaVersion
 import sbt.VirtualAxis
 import sbt.internal.ProjectMatrix
@@ -20,7 +21,10 @@ object IntellijIdeaScalaVersion {
 
   implicit final class ProjectMatrixSyntaxExtension(val pm: ProjectMatrix) extends AnyVal {
 
-    def jvmOnly(scalaVersion: IntellijIdeaScalaVersion, excluding: PartialFunction[String, Unit] = PartialFunction.empty): ProjectMatrix = {
+    def jvmOnly(
+      scalaVersion: IntellijIdeaScalaVersion,
+      excluding: PartialFunction[String, Unit] = PartialFunction.empty
+    ): ProjectMatrix = {
       val scalaVersions = allScalaVersions(excluding.lift.andThen(_.isDefined))
       pm.someVariations(scalaVersions = scalaVersions, List(VirtualAxis.jvm))(
         scalaVersion.oneAxisAtATimeExportedTpIntellijIdea,

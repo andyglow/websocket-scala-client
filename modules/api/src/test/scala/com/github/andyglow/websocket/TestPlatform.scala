@@ -1,8 +1,8 @@
 package com.github.andyglow.websocket
 
 import com.github.andyglow.utils.EncodeHex
-
-import java.nio.{ByteBuffer, CharBuffer}
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
 import scala.collection.mutable.ListBuffer
 
 class TestPlatform extends Platform {

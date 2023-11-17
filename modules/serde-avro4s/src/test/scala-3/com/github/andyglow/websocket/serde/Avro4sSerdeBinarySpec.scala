@@ -1,6 +1,8 @@
 package com.github.andyglow.websocket.serde
 
-import com.sksamuel.avro4s.{Encoder, Decoder, SchemaFor}
+import com.sksamuel.avro4s.Decoder
+import com.sksamuel.avro4s.Encoder
+import com.sksamuel.avro4s.SchemaFor
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers.*
 
@@ -15,13 +17,8 @@ class Avro4sSerdeBinarySpec extends AnyFunSuite {
 //  import SchemaFor.given
 
   val serde = new Avro4SSerde
-  import serde.binary.given_MessageAdapter_T
-
-//  println("SF  " + summon[SchemaFor[Int]])
-//  println("Enc " + summon[Encoder[Int]])
-//  println("Dec " + summon[Decoder[Int]])
-
   import serde._
+  import serde.binary.given_MessageAdapter_T
 
   val cli = platform.newClient()
   import cli._
