@@ -1,7 +1,7 @@
 package com.github.andyglow.utils
 
-import org.scalatest.matchers.should.Matchers._
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks._
 
 class EncodeHexSpec extends AnyFunSuite {
@@ -16,8 +16,8 @@ class EncodeHexSpec extends AnyFunSuite {
   test("regular cases") {
     EncodeHex(Array.empty[Byte]) shouldBe empty
 
-    EncodeHex(0xFA) shouldBe "FA"
-    EncodeHex(0xFA, 0xAC) shouldBe "FA AC"
+    EncodeHex(0xfa) shouldBe "FA"
+    EncodeHex(0xfa, 0xac) shouldBe "FA AC"
 
     EncodeHex(0x00, 0x01) shouldBe "00 01"
     EncodeHex(0x00, 0x01, 0x02) shouldBe "00 01 02"

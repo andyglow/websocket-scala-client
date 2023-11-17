@@ -23,7 +23,6 @@ private[serde] object Avro4SHelper {
     in.iterator.next()
   }
 
-
   def messageToJsonString[T](x: T)(implicit enc: Encoder[T], sf: SchemaFor[T]): String = {
     val os  = new ByteArrayOutputStream
     val out = AvroOutputStream.json[T].to(os).build()

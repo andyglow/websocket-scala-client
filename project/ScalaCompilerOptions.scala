@@ -13,7 +13,8 @@ object ScalaCompilerOptions {
   )
 
   private val base = Seq(
-    "-encoding", "UTF-8",
+    "-encoding",
+    "UTF-8",
     "-feature",
     "-unchecked",
     "-deprecation",
@@ -64,7 +65,8 @@ object ScalaCompilerOptions {
     "-language:higherKinds",
     "-language:implicitConversions",
     "-explain",
-    "-release", "8"
+    "-release",
+    "8"
   )
 
   def apply(scalaVersion: String): Seq[String] = {

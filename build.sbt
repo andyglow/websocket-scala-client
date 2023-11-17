@@ -1,11 +1,10 @@
 import Dependencies.*
-import ScalaVersions.*
 import IntellijIdeaScalaVersion.*
+import ScalaVersions.*
 import commandmatrix.Dimension
 import sbt.*
 import sbt.Keys.*
 import sbt.internal.ProjectMatrix
-
 
 ThisBuild / scalaVersion := scala213
 
@@ -16,25 +15,24 @@ val intellijIdeaScalaVersion = IntellijIdeaScalaVersion(scala213)
 Global / excludeLintKeys += ideSkipProject
 // }}}
 
-/**
-  * Early Semver
+/** Early Semver
   *
   * Given a version number major.minor.patch, you MUST increment the:
-  * - [[major]] version if backward [[binary]] compatibility is broken,
-  * - [[minor]] version if backward [[source]] compatibility is broken, and
-  * - [[patch]] version to signal neither [[binary]] nor [[source]] incompatibility.
-  * When the [[major]] version is [[0]], a [[minor]] version increment *MAY* contain
-  * both [[source]] and [[binary]] breakages, but a [[patch]] version increment *MUST* remain [[binary]] compatible.
+  *   - [[major]] version if backward [[binary]] compatibility is broken,
+  *   - [[minor]] version if backward [[source]] compatibility is broken, and
+  *   - [[patch]] version to signal neither [[binary]] nor [[source]] incompatibility. When the [[major]] version is
+  *     [[0]], a [[minor]] version increment *MAY* contain both [[source]] and [[binary]] breakages, but a [[patch]]
+  *     version increment *MUST* remain [[binary]] compatible.
   *
   * Links
-  * - https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html
-  * - https://docs.scala-lang.org/overviews/core/binary-compatibility-for-library-authors.html#versioning-scheme---communicating-compatibility-breakages
+  *   - https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html
+  *   - https://docs.scala-lang.org/overviews/core/binary-compatibility-for-library-authors.html#versioning-scheme---communicating-compatibility-breakages
   */
 ThisBuild / versionScheme := Some("early-semver")
 
 ThisBuild / libraryDependencies ++= Seq(
   scalatest,
-  mockito,
+  mockito
 )
 
 // format: off
@@ -49,10 +47,9 @@ lazy val api = (projectMatrix in file("modules/api"))
   .settings(
     name := "websocket-api",
     commonOptions,
-    libraryDependencies += scalatestplus(scalaVersion.value),
+    libraryDependencies += scalatestplus(scalaVersion.value)
   )
   .jvmOnly(intellijIdeaScalaVersion)
-
 
 lazy val backendNetty = (projectMatrix in file("modules/backend-netty"))
   .dependsOn(api % "test->test;compile->compile")
@@ -93,7 +90,6 @@ lazy val backendPekko = (projectMatrix in file("modules/backend-pekko"))
   )
   .jvmOnly(intellijIdeaScalaVersion, excluding = { case `scala211` => })
 
-
 lazy val backendJdkHttpClient = (projectMatrix in file("modules/backend-jdk-http-client"))
   .dependsOn(api % "test->test;compile->compile")
   .settings(
@@ -122,8 +118,8 @@ lazy val serdeJsoniterScala = (projectMatrix in file("modules/serde-jsoniter"))
     name := "websocket-serde-avro4s",
     commonOptions,
     libraryDependencies ++= Seq(
-      jsoniterScala(scalaVersion.value).core % Compile,
-      jsoniterScala(scalaVersion.value).macros % Test,
+      jsoniterScala(scalaVersion.value).core   % Compile,
+      jsoniterScala(scalaVersion.value).macros % Test
     )
   )
   .jvmOnly(intellijIdeaScalaVersion)
@@ -167,7 +163,7 @@ lazy val root = (project in file("."))
   )
   .settings(
     name := "websocket-root",
-    disablePublishing,
+    disablePublishing
   )
   .settings()
 
@@ -233,10 +229,10 @@ val includeScala211PlusFolders = Seq[Setting[_]](
       case Some((2, 11)) => Nil
       case _             => specificFolder(sourceDirectory.value, "2.11+")
     }
-  },
+  }
 )
 
 lazy val commonOptions = Seq[Setting[_]](
   Compile / doc / scalacOptions ++= Seq("-groups", "-implicits", "-no-link-warnings"),
-  scalacOptions := ScalaCompilerOptions(scalaVersion.value),
+  scalacOptions := ScalaCompilerOptions(scalaVersion.value)
 )
