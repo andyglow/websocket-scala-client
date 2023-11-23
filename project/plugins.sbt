@@ -14,7 +14,7 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.10.0")
 addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.1")
 
 // https://github.com/scalacenter/bloop
-addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.11")
+addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.12")
 
 // https://github.com/scalameta/sbt-scalafmt
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
