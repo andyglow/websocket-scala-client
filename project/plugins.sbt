@@ -20,7 +20,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.13")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
 
 // https://github.com/djspiewak/sbt-github-actions
-addSbtPlugin("com.github.sbt" % "sbt-github-actions" % "0.19.0")
+addSbtPlugin("com.github.sbt" % "sbt-github-actions" % "0.22.0")
 
 // https://github.com/sbt/sbt-projectmatrix
 addSbtPlugin("com.eed3si9n" % "sbt-projectmatrix" % "0.9.1")
