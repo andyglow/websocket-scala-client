@@ -3,7 +3,7 @@ import sbt.*
 object Dependencies {
   lazy val Examples = config("example") extend Compile
 
-  val slf4jVersion       = "2.0.11"
+  val slf4jVersion       = "2.0.12"
   val nettyVersion       = "4.1.106.Final"
   val scalaStmVersion    = "0.11.1"
   val bcVersion          = "1.76" // bouncycastle
