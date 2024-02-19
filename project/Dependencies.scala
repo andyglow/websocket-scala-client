@@ -7,7 +7,7 @@ object Dependencies {
   val nettyVersion       = "4.1.107.Final"
   val scalaStmVersion    = "0.11.1"
   val bcVersion          = "1.76" // bouncycastle
-  val pekkoHttpVersion   = "1.0.0"
+  val pekkoHttpVersion   = "1.0.1"
   val pekkoStreamVersion = "1.0.2"
   // log4j is only needed to test-we-server
   val log4jVersion = "2.21.0"
