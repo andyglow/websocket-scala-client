@@ -35,7 +35,7 @@ object Dependencies {
     def apply(scalaVersion: String): ModuleID = {
       val (a, v) = CrossVersion.partialVersion(scalaVersion) match {
         case Some((2, 11)) => ("scalacheck-1-15", "3.2.3.0")
-        case _             => ("scalacheck-1-17", "3.2.17.0")
+        case _             => ("scalacheck-1-17", "3.2.18.0")
       }
 
       "org.scalatestplus" %% a % v
