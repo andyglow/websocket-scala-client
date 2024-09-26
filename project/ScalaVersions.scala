@@ -1,7 +1,7 @@
 object ScalaVersions {
   val scala211 = "2.11.12"
   val scala212 = "2.12.20"
-  val scala213 = "2.13.14"
+  val scala213 = "2.13.15"
   val scala3   = "3.5.1"
 
   def allScalaVersions(excluding: String => Boolean = _ => false): List[String] =
