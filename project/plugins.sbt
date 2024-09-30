@@ -2,7 +2,7 @@
 addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "2.2.1")
 
 // https://github.com/scoverage/sbt-coveralls
-addSbtPlugin("org.scoverage" %% "sbt-coveralls" % "1.3.13")
+addSbtPlugin("org.scoverage" %% "sbt-coveralls" % "1.3.14")
 
 // https://github.com/sbt/sbt-release
 addSbtPlugin("com.github.sbt" % "sbt-release" % "1.4.0")
