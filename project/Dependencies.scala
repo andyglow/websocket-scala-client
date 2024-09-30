@@ -13,7 +13,7 @@ object Dependencies {
   val log4jVersion = "2.21.0"
 
   val scalatestVersion = "3.2.19"
-  val mockitoVersion   = "5.14.0"
+  val mockitoVersion   = "5.14.1"
 
   val nettyAll    = "io.netty"                 % "netty-all"        % nettyVersion       % Compile
   val nettyHttp   = "io.netty"                 % "netty-codec-http" % nettyVersion       % Compile
