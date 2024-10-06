@@ -11,7 +11,7 @@ addSbtPlugin("com.github.sbt" % "sbt-release" % "1.4.0")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.11.3")
 
 // https://github.com/sbt/sbt-pgp
-addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.1")
+addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.3.0")
 
 // https://github.com/scalacenter/bloop
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "2.0.2")
