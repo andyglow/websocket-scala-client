@@ -155,7 +155,8 @@ trait Platform {
     /** We trigger this partial function in case of failures
       * @return
       */
-    def onFailure: PartialFunction[Throwable, Unit] = { case _: Throwable => /* ignore errors */ }
+    def onFailure: PartialFunction[Throwable, Unit] = { case _: Throwable => /* ignore errors */
+    }
 
     /** This function is going to be called when the socket is closed.
       * @return
