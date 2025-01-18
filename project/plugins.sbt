@@ -17,7 +17,7 @@ addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.3.1")
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "2.0.7")
 
 // https://github.com/scalameta/sbt-scalafmt
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.3")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.4")
 
 // https://github.com/djspiewak/sbt-github-actions
 addSbtPlugin("com.github.sbt" % "sbt-github-actions" % "0.24.0")
