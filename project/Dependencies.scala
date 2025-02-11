@@ -4,7 +4,7 @@ object Dependencies {
   lazy val Examples = config("example") extend Compile
 
   val slf4jVersion       = "2.0.16"
-  val nettyVersion       = "4.1.117.Final"
+  val nettyVersion       = "4.1.118.Final"
   val scalaStmVersion    = "0.11.1"
   val bcVersion          = "1.76" // bouncycastle
   val pekkoHttpVersion   = "1.1.0"
