@@ -23,7 +23,7 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.4")
 addSbtPlugin("com.github.sbt" % "sbt-github-actions" % "0.25.0")
 
 // https://github.com/sbt/sbt-projectmatrix
-addSbtPlugin("com.eed3si9n" % "sbt-projectmatrix" % "0.10.1")
+addSbtPlugin("com.eed3si9n" % "sbt-projectmatrix" % "0.11.0")
 
 // https://github.com/indoorvivants/sbt-commandmatrix
 addSbtPlugin("com.indoorvivants" % "sbt-commandmatrix" % "0.0.5")
