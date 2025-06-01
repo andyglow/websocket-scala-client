@@ -9,7 +9,7 @@ class TestPlatform extends Platform {
 
   trait Msg
   object Msg {
-    case class Text(value: String) extends Msg
+    case class Text(value: String)        extends Msg
     case class Binary(value: Array[Byte]) extends Msg {
       override def equals(obj: Any): Boolean = obj match {
         case Binary(other) => java.util.Arrays.equals(value, other)

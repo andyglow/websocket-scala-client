@@ -40,17 +40,17 @@ object ServerAddress {
 
   def apply(uri: URI): ServerAddress = {
     require(uri.getScheme == "ws" || uri.getScheme == "wss")
-    val secure = uri.getScheme == "wss"
-    val host   = uri.getHost
-    val port   = uri.getPort
-    val path   = uri.getPath
+    val secure    = uri.getScheme == "wss"
+    val host      = uri.getHost
+    val port      = uri.getPort
+    val path      = uri.getPath
     val queryList =
       if (uri.getRawQuery == null) List.empty
       else
         (uri.getRawQuery split "&").toList map { token =>
           token split "=" match {
             case Array(k: String, v: String) => (k, URLDecoder.decode(v, "UTF-8"))
-            case arr =>
+            case arr                         =>
               throw new Exception(
                 s"Query Parameter Parse Exception. Invalid token [$token] lead to [${arr mkString ","}]. Expected 'k=v' form"
               )

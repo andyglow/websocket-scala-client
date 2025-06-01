@@ -16,7 +16,7 @@ trait PekkoImplicits { this: PekkoPlatform =>
       fromString: String => T
     ) extends MessageAdapter[T] {
       override type F = Text
-      override def toMessage(msg: T)(implicit ic: InternalContext): F = ws.TextMessage(toString(msg))
+      override def toMessage(msg: T)(implicit ic: InternalContext): F   = ws.TextMessage(toString(msg))
       override def fromMessage(msg: F)(implicit ic: InternalContext): T = {
         import ic._
         import mat.executionContext
@@ -33,7 +33,7 @@ trait PekkoImplicits { this: PekkoPlatform =>
       fromByteString: ByteString => T
     ) extends MessageAdapter[T] {
       override type F = Binary
-      override def toMessage(msg: T)(implicit ic: InternalContext): F = ws.BinaryMessage(toByteString(msg))
+      override def toMessage(msg: T)(implicit ic: InternalContext): F   = ws.BinaryMessage(toByteString(msg))
       override def fromMessage(msg: F)(implicit ic: InternalContext): T = {
         import ic._
         import mat.executionContext

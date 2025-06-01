@@ -68,7 +68,7 @@ trait NettyClient { this: NettyPlatform =>
     }
 
     override def channelRead0(ctx: ChannelHandlerContext, msg: ByteBufHolder): Unit = {
-      val ch = ctx.channel()
+      val ch                                                          = ctx.channel()
       val handleControlMessages: PartialFunction[ByteBufHolder, Unit] = {
         // handle Close initiated by Server
         case _: CloseWebSocketFrame =>
@@ -219,7 +219,7 @@ trait NettyClient { this: NettyPlatform =>
   ) extends Websocket
       with Websocket.AsyncImpl {
     override protected implicit val executionContext: ExecutionContext = ec
-    override protected def sendAsync(x: MessageType): Future[Unit] = {
+    override protected def sendAsync(x: MessageType): Future[Unit]     = {
       AdaptNettyFuture(ch.writeAndFlush(x)).map { _ => () }
     }
     override protected def pingAsync(): Future[Unit] = {

@@ -8,7 +8,7 @@ ThisBuild / organization           := "com.github.andyglow"
 ThisBuild / homepage               := Some(new URL("http://github.com/andyglow/websocket-scala-client"))
 ThisBuild / startYear              := Some(2019)
 ThisBuild / organizationName       := "andyglow"
-ThisBuild / scmInfo := Some(
+ThisBuild / scmInfo                := Some(
   ScmInfo(
     url("https://github.com/andyglow/websocket-scala-client"),
     "scm:git@github.com:andyglow/websocket-scala-client.git"

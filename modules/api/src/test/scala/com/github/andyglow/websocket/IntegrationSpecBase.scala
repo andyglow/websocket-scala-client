@@ -19,7 +19,7 @@ object IntegrationSpecBase {
   }
 
   protected class EmbeddedServer(ssl: Boolean) extends ServerHandle {
-    protected final lazy val server = WebsocketServer.newServer(ssl)
+    protected final lazy val server     = WebsocketServer.newServer(ssl)
     override def address: ServerAddress = {
       val scheme: String = if (ssl) "wss" else "ws"
       ServerAddress(s"$scheme://localhost:${server.port}${WebsocketServer.WebsocketPath}")
@@ -99,9 +99,9 @@ trait IntegrationSpecBase extends AnyWordSpec with BeforeAndAfterAll {
   protected def withState[T <: State](init: T): Builder0[T] = Builder0(init)
 
   protected case class CountingDownState(count: Int = 1) extends State {
-    val latch              = new CountDownLatch(count)
-    def countDown(): Unit  = latch.countDown()
-    def succeeded: Boolean = latch.getCount == 0
+    val latch                        = new CountDownLatch(count)
+    def countDown(): Unit            = latch.countDown()
+    def succeeded: Boolean           = latch.getCount == 0
     def whenFinished[T](fn: => T): T = {
       latch.await(2, TimeUnit.SECONDS)
       fn

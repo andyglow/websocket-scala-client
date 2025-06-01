@@ -12,7 +12,7 @@ private[websocket] object NettyStringify {
   def apply(x: Any): String = x match {
     case x: PongWebSocketFrame  => "pong"
     case x: CloseWebSocketFrame => "close"
-    case x: TextWebSocketFrame =>
+    case x: TextWebSocketFrame  =>
       val s = x.text()
       x.content().retain()
       s"text[ $s ${if (x.isFinalFragment) "!" else ""}]"
