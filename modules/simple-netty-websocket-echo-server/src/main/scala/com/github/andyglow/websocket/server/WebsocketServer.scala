@@ -71,7 +71,7 @@ object WebsocketServer {
   def newServer(port: Int, ssl: Boolean): WebsocketServer = {
     val bossGroup   = new NioEventLoopGroup(1)
     val workerGroup = new NioEventLoopGroup()
-    val ch = Try {
+    val ch          = Try {
       val b = new ServerBootstrap()
       b.group(bossGroup, workerGroup)
         .channel(classOf[NioServerSocketChannel])

@@ -9,9 +9,9 @@ import org.scalatest.DoNotDiscover
 
 @DoNotDiscover
 final class JdkPlatformSslSpec extends IntegrationSpecBase {
-  override val platform: JdkPlatform = JdkPlatform
-  override val ssl                   = true
-  override val isPingSupported       = true
+  override val platform: JdkPlatform        = JdkPlatform
+  override val ssl                          = true
+  override val isPingSupported              = true
   override val options: platform.JdkOptions = {
 
     val trustAny = Array[TrustManager](new X509TrustManager() {

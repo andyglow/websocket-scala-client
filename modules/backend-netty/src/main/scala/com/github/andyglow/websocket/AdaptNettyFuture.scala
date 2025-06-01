@@ -11,7 +11,7 @@ private[websocket] object AdaptNettyFuture {
     if (f.isDone) {
       if (f.isSuccess) Future.successful(f.getNow) else Future.failed(f.cause())
     } else {
-      val promise = Promise[T]()
+      val promise        = Promise[T]()
       val futureListener = new GenericFutureListener[NFuture[T]]() {
         override def operationComplete(future: NFuture[T]): Unit = {
           if (future.isSuccess) promise.success(future.getNow) else promise.failure(future.cause())
