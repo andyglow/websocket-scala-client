@@ -12,7 +12,7 @@ object Dependencies {
   // log4j is only needed to test-we-server
   val log4jVersion = "2.21.0"
 
-  val scalatestVersion = "3.2.19"
+  val scalatestVersion = "3.2.20"
   val mockitoVersion   = "5.23.0"
 
   val nettyAll    = "io.netty"                 % "netty-all"        % nettyVersion       % Compile
